@@ -1,0 +1,303 @@
+[
+  {
+    "id": "50c405ca-bc6c-4833-8fd2-90e3a42bf614",
+    "requester_id": "73851c2c-1413-40e7-93fc-97620ab2f4fe",
+    "task": "analyze sentiment of customer feedback",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 10,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "47dba4c9-5165-4c6b-b9a5-b5cc4ffba0ea",
+        "agent_name": "SentimentBot",
+        "price": 45000,
+        "estimated_time": 5,
+        "submitted_at": 1778328763.921957
+      },
+      {
+        "agent_id": "6462d981-0253-49dd-abf5-49f4f1f8bfa0",
+        "agent_name": "CheapSentimentBot",
+        "price": 25000,
+        "estimated_time": 8,
+        "submitted_at": 1778328763.948003
+      }
+    ],
+    "winner": {
+      "agent_id": "6462d981-0253-49dd-abf5-49f4f1f8bfa0",
+      "agent_name": "CheapSentimentBot",
+      "price": 25000,
+      "estimated_time": 8,
+      "submitted_at": 1778328763.948003
+    },
+    "created_at": 1778328763.862817,
+    "closed_at": 1778328773.869438
+  },
+  {
+    "id": "4e3cee5a-2dec-4848-a284-660f7780b277",
+    "requester_id": "02d79cb4-41bd-43a5-899f-d8566de1b436",
+    "task": "analyze sentiment",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 5,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "0a2c43bc-31e7-4284-84c8-ebde951bbb66",
+        "agent_name": "WorkerBot_P3",
+        "price": 35000,
+        "estimated_time": 5,
+        "submitted_at": 1778329002.97699
+      }
+    ],
+    "winner": {
+      "agent_id": "0a2c43bc-31e7-4284-84c8-ebde951bbb66",
+      "agent_name": "WorkerBot_P3",
+      "price": 35000,
+      "estimated_time": 5,
+      "submitted_at": 1778329002.97699
+    },
+    "created_at": 1778329002.9464169,
+    "closed_at": 1778329007.952915
+  },
+  {
+    "id": "6aa80eb6-b8ed-4575-aed2-430a0e44f14e",
+    "requester_id": "ee6916d0-6fb2-44c0-98a1-10cf48bd2e2b",
+    "task": "Demo: analyze customer sentiment [1dvv]",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 12,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "81f081e0-53d6-4053-a029-00adcd8d6edc",
+        "agent_name": "FastWorker_1dvv",
+        "price": 55000,
+        "estimated_time": 3,
+        "submitted_at": 1778330457.730185
+      },
+      {
+        "agent_id": "43bc3b0e-84b6-4084-9266-d5a166e07317",
+        "agent_name": "CheapWorker_1dvv",
+        "price": 30000,
+        "estimated_time": 6,
+        "submitted_at": 1778330459.236065
+      }
+    ],
+    "winner": {
+      "agent_id": "43bc3b0e-84b6-4084-9266-d5a166e07317",
+      "agent_name": "CheapWorker_1dvv",
+      "price": 30000,
+      "estimated_time": 6,
+      "submitted_at": 1778330459.236065
+    },
+    "created_at": 1778330456.218663,
+    "closed_at": 1778330468.223876
+  },
+  {
+    "id": "280a84eb-9cfa-4cab-b27c-dff82eee7141",
+    "requester_id": "1923a251-7921-41c8-90eb-f37076d4d4dc",
+    "task": "Demo: analyze customer sentiment [p94c]",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 12,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "72e1f5ca-93a7-4ece-b240-76963e49abb2",
+        "agent_name": "FastWorker_p94c",
+        "price": 55000,
+        "estimated_time": 3,
+        "submitted_at": 1778331571.399733
+      },
+      {
+        "agent_id": "fcce8fd3-3c59-4f8c-b78e-462a773e6fe5",
+        "agent_name": "CheapWorker_p94c",
+        "price": 30000,
+        "estimated_time": 6,
+        "submitted_at": 1778331572.9041762
+      }
+    ],
+    "winner": {
+      "agent_id": "fcce8fd3-3c59-4f8c-b78e-462a773e6fe5",
+      "agent_name": "CheapWorker_p94c",
+      "price": 30000,
+      "estimated_time": 6,
+      "submitted_at": 1778331572.9041762
+    },
+    "created_at": 1778331569.8945642,
+    "closed_at": 1778331581.89778
+  },
+  {
+    "id": "5bdb5809-26ef-4e29-bc1d-7106be6b2bfd",
+    "requester_id": "fbb3efc0-1799-40c1-8432-1a2fc6bb182d",
+    "task": "Demo: analyze customer sentiment [r4gg]",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 12,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "943b9ba2-dd0f-4d8d-bedc-765ceec826a9",
+        "agent_name": "FastWorker_r4gg",
+        "price": 55000,
+        "estimated_time": 3,
+        "submitted_at": 1778331658.6707149
+      },
+      {
+        "agent_id": "95e5f0a4-20bc-42c0-86a4-209f35f790a5",
+        "agent_name": "CheapWorker_r4gg",
+        "price": 30000,
+        "estimated_time": 6,
+        "submitted_at": 1778331660.177034
+      }
+    ],
+    "winner": {
+      "agent_id": "95e5f0a4-20bc-42c0-86a4-209f35f790a5",
+      "agent_name": "CheapWorker_r4gg",
+      "price": 30000,
+      "estimated_time": 6,
+      "submitted_at": 1778331660.177034
+    },
+    "created_at": 1778331657.165247,
+    "closed_at": 1778331669.172031
+  },
+  {
+    "id": "8fcd1eac-529b-469f-b4c2-4d6eed4f5d58",
+    "requester_id": "397bd4ef-4674-4390-9369-dc6105a19aec",
+    "task": "Write a short haiku about scalable blockchain AI agents.",
+    "required_capability": "creative_writing",
+    "budget": 1000,
+    "deadline": 30,
+    "auction_duration": 15,
+    "status": "expired",
+    "bids": [],
+    "winner": null,
+    "created_at": 1778331932.494095,
+    "closed_at": 1778331947.499873
+  },
+  {
+    "id": "bdd7c5d3-4f05-432c-970e-ad08f1dc2840",
+    "requester_id": "76702c33-f13a-43ba-9db7-369efbd42f97",
+    "task": "Demo: analyze customer sentiment [my65]",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 12,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "d6ff3964-5d4b-4eda-a574-77fb89ac77fd",
+        "agent_name": "FastWorker_my65",
+        "price": 55000,
+        "estimated_time": 3,
+        "submitted_at": 1778333143.473134
+      },
+      {
+        "agent_id": "36e5cc1c-d716-4a5c-8501-b4dc34416cd6",
+        "agent_name": "CheapWorker_my65",
+        "price": 30000,
+        "estimated_time": 6,
+        "submitted_at": 1778333144.977525
+      }
+    ],
+    "winner": {
+      "agent_id": "36e5cc1c-d716-4a5c-8501-b4dc34416cd6",
+      "agent_name": "CheapWorker_my65",
+      "price": 30000,
+      "estimated_time": 6,
+      "submitted_at": 1778333144.977525
+    },
+    "created_at": 1778333141.9660811,
+    "closed_at": 1778333153.971964
+  },
+  {
+    "id": "9eecc60e-837c-4059-8a3a-8bc619cda70e",
+    "requester_id": "d6818cc6-f4cc-41e8-af0c-d2a1d8982219",
+    "task": "Demo: analyze customer sentiment [p683]",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 12,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "c1522e8a-dae9-4d61-9a63-693a8535e5a2",
+        "agent_name": "FastWorker_p683",
+        "price": 55000,
+        "estimated_time": 3,
+        "submitted_at": 1778333247.15982
+      },
+      {
+        "agent_id": "6b9d65d5-a3c8-4e56-b568-6cec93681d18",
+        "agent_name": "CheapWorker_p683",
+        "price": 30000,
+        "estimated_time": 6,
+        "submitted_at": 1778333248.666812
+      }
+    ],
+    "winner": {
+      "agent_id": "6b9d65d5-a3c8-4e56-b568-6cec93681d18",
+      "agent_name": "CheapWorker_p683",
+      "price": 30000,
+      "estimated_time": 6,
+      "submitted_at": 1778333248.666812
+    },
+    "created_at": 1778333245.655075,
+    "closed_at": 1778333257.6623192
+  },
+  {
+    "id": "761bfa15-7e27-4d73-acc7-3bbacb4a96c5",
+    "requester_id": "fbb3efc0-1799-40c1-8432-1a2fc6bb182d",
+    "task": "Write a short haiku about scalable blockchain AI agents.",
+    "required_capability": "creative_writing",
+    "budget": 1111,
+    "deadline": 30,
+    "auction_duration": 15,
+    "status": "expired",
+    "bids": [],
+    "winner": null,
+    "created_at": 1778333354.02218,
+    "closed_at": 1778333369.026507
+  },
+  {
+    "id": "5f6e0d6f-92cf-4b7b-b02d-73ecf7736554",
+    "requester_id": "665123df-773d-4bcc-b177-515c71db1d5b",
+    "task": "Demo: analyze customer sentiment [rynm]",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 12,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "ae408aaa-6712-4a64-a379-c3e472a452b4",
+        "agent_name": "FastWorker_rynm",
+        "price": 55000,
+        "estimated_time": 3,
+        "submitted_at": 1778333377.379721
+      },
+      {
+        "agent_id": "31c981c8-b22d-48ac-b9f8-438ac7c621e2",
+        "agent_name": "CheapWorker_rynm",
+        "price": 30000,
+        "estimated_time": 6,
+        "submitted_at": 1778333378.8836339
+      }
+    ],
+    "winner": {
+      "agent_id": "31c981c8-b22d-48ac-b9f8-438ac7c621e2",
+      "agent_name": "CheapWorker_rynm",
+      "price": 30000,
+      "estimated_time": 6,
+      "submitted_at": 1778333378.8836339
+    },
+    "created_at": 1778333375.871708,
+    "closed_at": 1778333387.877645
+  }
+]

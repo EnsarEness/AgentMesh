@@ -1,0 +1,348 @@
+[
+  {
+    "name": "SentimentBot",
+    "capabilities": [
+      "sentiment_analysis",
+      "text_classification"
+    ],
+    "price_per_request": 50000,
+    "wallet_address": "GcDsWjkHGY9jJRvhRm9Sb1HizJQu3zppGKEmxbrSM6qx",
+    "public_key": "GcDsWjkHGY9jJRvhRm9Sb1HizJQu3zppGKEmxbrSM6qx",
+    "id": "47dba4c9-5165-4c6b-b9a5-b5cc4ffba0ea",
+    "registered_at": "2026-05-09T12:08:34.834053+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CodeReviewAgent",
+    "capabilities": [
+      "code_review",
+      "bug_detection",
+      "optimization"
+    ],
+    "price_per_request": 75000,
+    "wallet_address": "3X8nt5AdsteLd5ebuUFutekEhnukpmTe8xagmi9kjKpc",
+    "public_key": "3X8nt5AdsteLd5ebuUFutekEhnukpmTe8xagmi9kjKpc",
+    "id": "73851c2c-1413-40e7-93fc-97620ab2f4fe",
+    "registered_at": "2026-05-09T12:08:41.463793+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CheapSentimentBot",
+    "capabilities": [
+      "sentiment_analysis"
+    ],
+    "price_per_request": 30000,
+    "wallet_address": "GsjbDQXWKRcZn8cnUgLXfsc7V3hyNTapT1tiHd95RSXa",
+    "public_key": "GsjbDQXWKRcZn8cnUgLXfsc7V3hyNTapT1tiHd95RSXa",
+    "id": "6462d981-0253-49dd-abf5-49f4f1f8bfa0",
+    "registered_at": "2026-05-09T12:12:43.808405+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 2,
+    "total_jobs": 2
+  },
+  {
+    "name": "RequesterBot_P3",
+    "capabilities": [
+      "task_delegation"
+    ],
+    "price_per_request": 0,
+    "wallet_address": "CF4HFJRMt38jAX6NeVavZSh7dm6g4mqEQgzA3Kgg1ytu",
+    "public_key": "CF4HFJRMt38jAX6NeVavZSh7dm6g4mqEQgzA3Kgg1ytu",
+    "id": "02d79cb4-41bd-43a5-899f-d8566de1b436",
+    "registered_at": "2026-05-09T12:16:42.847077+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "WorkerBot_P3",
+    "capabilities": [
+      "sentiment_analysis",
+      "data_processing"
+    ],
+    "price_per_request": 40000,
+    "wallet_address": "7cDRJkSRJff5DQvwPYgWPJWTLA5sXsdqSmWzf9TfeSjd",
+    "public_key": "7cDRJkSRJff5DQvwPYgWPJWTLA5sXsdqSmWzf9TfeSjd",
+    "id": "0a2c43bc-31e7-4284-84c8-ebde951bbb66",
+    "registered_at": "2026-05-09T12:16:42.916574+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 1,
+    "total_jobs": 1
+  },
+  {
+    "name": "DemoRequester_1dvv",
+    "capabilities": [
+      "task_delegation"
+    ],
+    "price_per_request": 0,
+    "wallet_address": "12dAaQmzn1173JTTN2f7pr6Z6R5tVUx16UC3RmTZ8aJ2",
+    "public_key": "12dAaQmzn1173JTTN2f7pr6Z6R5tVUx16UC3RmTZ8aJ2",
+    "id": "ee6916d0-6fb2-44c0-98a1-10cf48bd2e2b",
+    "registered_at": "2026-05-09T12:40:56.205606+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "FastWorker_1dvv",
+    "capabilities": [
+      "sentiment_analysis",
+      "nlp"
+    ],
+    "price_per_request": 60000,
+    "wallet_address": "AUJiAiMyNh9ozLAsYQiEKCxA7cYYJQ423fygLeoioZFb",
+    "public_key": "AUJiAiMyNh9ozLAsYQiEKCxA7cYYJQ423fygLeoioZFb",
+    "id": "81f081e0-53d6-4053-a029-00adcd8d6edc",
+    "registered_at": "2026-05-09T12:40:56.208555+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CheapWorker_1dvv",
+    "capabilities": [
+      "sentiment_analysis"
+    ],
+    "price_per_request": 25000,
+    "wallet_address": "CJ15MxXSsKmauW6EfYHaDNgvER8Wz1vsUqsNWDXJwado",
+    "public_key": "CJ15MxXSsKmauW6EfYHaDNgvER8Wz1vsUqsNWDXJwado",
+    "id": "43bc3b0e-84b6-4084-9266-d5a166e07317",
+    "registered_at": "2026-05-09T12:40:56.212208+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 1,
+    "total_jobs": 1
+  },
+  {
+    "name": "DemoRequester_p94c",
+    "capabilities": [
+      "task_delegation"
+    ],
+    "price_per_request": 0,
+    "wallet_address": "DAY8eYxU6MthoZwKzyYWjxKWWuXJFCqSZAwjyPXcTuv4",
+    "public_key": "DAY8eYxU6MthoZwKzyYWjxKWWuXJFCqSZAwjyPXcTuv4",
+    "id": "1923a251-7921-41c8-90eb-f37076d4d4dc",
+    "registered_at": "2026-05-09T12:59:29.775027+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "FastWorker_p94c",
+    "capabilities": [
+      "sentiment_analysis",
+      "nlp"
+    ],
+    "price_per_request": 60000,
+    "wallet_address": "FNVBxNeBQaHPAmpcdB4K91NqQgeqRPqhCVHgo7mKEsJr",
+    "public_key": "FNVBxNeBQaHPAmpcdB4K91NqQgeqRPqhCVHgo7mKEsJr",
+    "id": "72e1f5ca-93a7-4ece-b240-76963e49abb2",
+    "registered_at": "2026-05-09T12:59:29.777601+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CheapWorker_p94c",
+    "capabilities": [
+      "sentiment_analysis"
+    ],
+    "price_per_request": 25000,
+    "wallet_address": "6nCbgExN2t6HDXw3tcefWUixJFQkMuXYXz9zZFs2Fuop",
+    "public_key": "6nCbgExN2t6HDXw3tcefWUixJFQkMuXYXz9zZFs2Fuop",
+    "id": "fcce8fd3-3c59-4f8c-b78e-462a773e6fe5",
+    "registered_at": "2026-05-09T12:59:29.780592+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 1,
+    "total_jobs": 1
+  },
+  {
+    "name": "DemoRequester_r4gg",
+    "capabilities": [
+      "task_delegation"
+    ],
+    "price_per_request": 0,
+    "wallet_address": "DqGR267GAVGypA6agoDpYL2j7avDMDYX1D4PGHQCFFkp",
+    "public_key": "DqGR267GAVGypA6agoDpYL2j7avDMDYX1D4PGHQCFFkp",
+    "id": "fbb3efc0-1799-40c1-8432-1a2fc6bb182d",
+    "registered_at": "2026-05-09T13:00:57.041902+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "FastWorker_r4gg",
+    "capabilities": [
+      "sentiment_analysis",
+      "nlp"
+    ],
+    "price_per_request": 60000,
+    "wallet_address": "6WGqncgzbhrwacepqux48fv5CbQfh3aFwuxDEjQQB6wm",
+    "public_key": "6WGqncgzbhrwacepqux48fv5CbQfh3aFwuxDEjQQB6wm",
+    "id": "943b9ba2-dd0f-4d8d-bedc-765ceec826a9",
+    "registered_at": "2026-05-09T13:00:57.046392+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CheapWorker_r4gg",
+    "capabilities": [
+      "sentiment_analysis"
+    ],
+    "price_per_request": 25000,
+    "wallet_address": "21rZhmfuLPzV5YuNc4tE2dVZMiEu7bYuf68Wn12rjS7R",
+    "public_key": "21rZhmfuLPzV5YuNc4tE2dVZMiEu7bYuf68Wn12rjS7R",
+    "id": "95e5f0a4-20bc-42c0-86a4-209f35f790a5",
+    "registered_at": "2026-05-09T13:00:57.049143+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 1,
+    "total_jobs": 1
+  },
+  {
+    "name": "CopywriterBot",
+    "capabilities": [
+      "creative_writing"
+    ],
+    "price_per_request": 500,
+    "wallet_address": "2v36dk8DP4k1rSYzvjU1YxbEBw73H3bMtKo2ZBiZ2344",
+    "public_key": "2v36dk8DP4k1rSYzvjU1YxbEBw73H3bMtKo2ZBiZ2344",
+    "id": "397bd4ef-4674-4390-9369-dc6105a19aec",
+    "registered_at": "2026-05-09T13:02:00.343995+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "DemoRequester_my65",
+    "capabilities": [
+      "task_delegation"
+    ],
+    "price_per_request": 0,
+    "wallet_address": "3d6gs3JjqW2ETn2CPMEHiuEesmjizAnNogFg3M2ZKMtB",
+    "public_key": "3d6gs3JjqW2ETn2CPMEHiuEesmjizAnNogFg3M2ZKMtB",
+    "id": "76702c33-f13a-43ba-9db7-369efbd42f97",
+    "registered_at": "2026-05-09T13:25:41.893217+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "FastWorker_my65",
+    "capabilities": [
+      "sentiment_analysis",
+      "nlp"
+    ],
+    "price_per_request": 60000,
+    "wallet_address": "8RcF9oehKAhCLHV31JDGKca7mxdiuzUEUiRwzs3PVaVy",
+    "public_key": "8RcF9oehKAhCLHV31JDGKca7mxdiuzUEUiRwzs3PVaVy",
+    "id": "d6ff3964-5d4b-4eda-a574-77fb89ac77fd",
+    "registered_at": "2026-05-09T13:25:41.897687+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CheapWorker_my65",
+    "capabilities": [
+      "sentiment_analysis"
+    ],
+    "price_per_request": 25000,
+    "wallet_address": "HYQELC8WcMUsKMSXJcUEHDdnTmhZaRkG22LNLBp94fdD",
+    "public_key": "HYQELC8WcMUsKMSXJcUEHDdnTmhZaRkG22LNLBp94fdD",
+    "id": "36e5cc1c-d716-4a5c-8501-b4dc34416cd6",
+    "registered_at": "2026-05-09T13:25:41.960978+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 1,
+    "total_jobs": 1
+  },
+  {
+    "name": "DemoRequester_p683",
+    "capabilities": [
+      "task_delegation"
+    ],
+    "price_per_request": 0,
+    "wallet_address": "7UyfjVw56vqbDQ5hZBgaNHTxuCPbK2NGWHz58DKWsq8C",
+    "public_key": "7UyfjVw56vqbDQ5hZBgaNHTxuCPbK2NGWHz58DKWsq8C",
+    "id": "d6818cc6-f4cc-41e8-af0c-d2a1d8982219",
+    "registered_at": "2026-05-09T13:27:25.637839+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "FastWorker_p683",
+    "capabilities": [
+      "sentiment_analysis",
+      "nlp"
+    ],
+    "price_per_request": 60000,
+    "wallet_address": "BN1GApBbAnBHXTfWtMdL8eqt9rdqVYREBY1duR29C5rc",
+    "public_key": "BN1GApBbAnBHXTfWtMdL8eqt9rdqVYREBY1duR29C5rc",
+    "id": "c1522e8a-dae9-4d61-9a63-693a8535e5a2",
+    "registered_at": "2026-05-09T13:27:25.644195+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CheapWorker_p683",
+    "capabilities": [
+      "sentiment_analysis"
+    ],
+    "price_per_request": 25000,
+    "wallet_address": "5AQgtwgZHX3GgsoNxX64JYciTywgYkPQxqsCigV1gXLf",
+    "public_key": "5AQgtwgZHX3GgsoNxX64JYciTywgYkPQxqsCigV1gXLf",
+    "id": "6b9d65d5-a3c8-4e56-b568-6cec93681d18",
+    "registered_at": "2026-05-09T13:27:25.649576+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 1,
+    "total_jobs": 1
+  },
+  {
+    "name": "DemoRequester_rynm",
+    "capabilities": [
+      "task_delegation"
+    ],
+    "price_per_request": 0,
+    "wallet_address": "AdQ6vtYit9R59XZGENzAwmi69PNumtgWixGBXrZ5rdca",
+    "public_key": "AdQ6vtYit9R59XZGENzAwmi69PNumtgWixGBXrZ5rdca",
+    "id": "665123df-773d-4bcc-b177-515c71db1d5b",
+    "registered_at": "2026-05-09T13:29:35.798318+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "FastWorker_rynm",
+    "capabilities": [
+      "sentiment_analysis",
+      "nlp"
+    ],
+    "price_per_request": 60000,
+    "wallet_address": "HMFLpFbuximTm7c51FPXbrWmrmKYRa2w6vHBHxgtCvoY",
+    "public_key": "HMFLpFbuximTm7c51FPXbrWmrmKYRa2w6vHBHxgtCvoY",
+    "id": "ae408aaa-6712-4a64-a379-c3e472a452b4",
+    "registered_at": "2026-05-09T13:29:35.805964+00:00",
+    "reputation_score": 0.0,
+    "completed_jobs": 0,
+    "total_jobs": 0
+  },
+  {
+    "name": "CheapWorker_rynm",
+    "capabilities": [
+      "sentiment_analysis"
+    ],
+    "price_per_request": 25000,
+    "wallet_address": "5W33Tr9xpFdTVtTP2XkYwyRaR5FSP4tsUtHwYxXb14ga",
+    "public_key": "5W33Tr9xpFdTVtTP2XkYwyRaR5FSP4tsUtHwYxXb14ga",
+    "id": "31c981c8-b22d-48ac-b9f8-438ac7c621e2",
+    "registered_at": "2026-05-09T13:29:35.865342+00:00",
+    "reputation_score": 1.0,
+    "completed_jobs": 1,
+    "total_jobs": 1
+  }
+]

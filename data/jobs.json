@@ -1,0 +1,259 @@
+[
+  {
+    "id": "5fb49875-777b-4d15-a699-4ca8076b8ab0",
+    "auction_id": "4e3cee5a-2dec-4848-a284-660f7780b277",
+    "task": "analyze sentiment",
+    "requester_id": "02d79cb4-41bd-43a5-899f-d8566de1b436",
+    "worker_id": "0a2c43bc-31e7-4284-84c8-ebde951bbb66",
+    "worker_name": "WorkerBot_P3",
+    "price": 35000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "input": "Customer feedback dataset (500 entries)",
+      "output": {
+        "positive": 0.62,
+        "neutral": 0.25,
+        "negative": 0.13,
+        "confidence": 0.94,
+        "summary": "Overall sentiment is strongly positive with minor concerns about delivery times."
+      },
+      "executed_by": "WorkerBot_P3",
+      "execution_time_ms": 2340
+    },
+    "payment_tx": null,
+    "created_at": 1778329009.0442119,
+    "completed_at": 1778329009.045007,
+    "paid_at": null
+  },
+  {
+    "id": "41641755-ef4d-4d57-825a-132d3fe0bc4e",
+    "auction_id": "50c405ca-bc6c-4833-8fd2-90e3a42bf614",
+    "task": "analyze sentiment of customer feedback",
+    "requester_id": "73851c2c-1413-40e7-93fc-97620ab2f4fe",
+    "worker_id": "6462d981-0253-49dd-abf5-49f4f1f8bfa0",
+    "worker_name": "CheapSentimentBot",
+    "price": 25000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "input": "Customer feedback dataset (500 entries)",
+      "output": {
+        "positive": 0.62,
+        "neutral": 0.25,
+        "negative": 0.13,
+        "confidence": 0.94,
+        "summary": "Overall sentiment is strongly positive with minor concerns about delivery times."
+      },
+      "executed_by": "CheapSentimentBot",
+      "execution_time_ms": 2340
+    },
+    "payment_tx": null,
+    "created_at": 1778330425.09615,
+    "completed_at": 1778330425.097461,
+    "paid_at": null
+  },
+  {
+    "id": "3ef3d12f-0fcd-4bbc-9cba-1638096f3f05",
+    "auction_id": "6aa80eb6-b8ed-4575-aed2-430a0e44f14e",
+    "task": "Demo: analyze customer sentiment [1dvv]",
+    "requester_id": "ee6916d0-6fb2-44c0-98a1-10cf48bd2e2b",
+    "worker_id": "43bc3b0e-84b6-4084-9266-d5a166e07317",
+    "worker_name": "CheapWorker_1dvv",
+    "price": 30000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "input": "Customer feedback dataset (500 entries)",
+      "output": {
+        "positive": 0.62,
+        "neutral": 0.25,
+        "negative": 0.13,
+        "confidence": 0.94,
+        "summary": "Overall sentiment is strongly positive with minor concerns about delivery times."
+      },
+      "executed_by": "CheapWorker_1dvv",
+      "execution_time_ms": 2340
+    },
+    "payment_tx": null,
+    "created_at": 1778330469.2438731,
+    "completed_at": 1778330469.246575,
+    "paid_at": null
+  },
+  {
+    "id": "c3c1b9ef-ad99-44c1-957a-7be7e19afd64",
+    "auction_id": "280a84eb-9cfa-4cab-b27c-dff82eee7141",
+    "task": "Demo: analyze customer sentiment [p94c]",
+    "requester_id": "1923a251-7921-41c8-90eb-f37076d4d4dc",
+    "worker_id": "fcce8fd3-3c59-4f8c-b78e-462a773e6fe5",
+    "worker_name": "CheapWorker_p94c",
+    "price": 30000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "input": "Customer feedback dataset (500 entries)",
+      "output": {
+        "positive": 0.62,
+        "neutral": 0.25,
+        "negative": 0.13,
+        "confidence": 0.94,
+        "summary": "Overall sentiment is strongly positive with minor concerns about delivery times."
+      },
+      "executed_by": "CheapWorker_p94c",
+      "execution_time_ms": 2340
+    },
+    "payment_tx": null,
+    "created_at": 1778331582.909489,
+    "completed_at": 1778331582.9125178,
+    "paid_at": null
+  },
+  {
+    "id": "875ef9ec-6f46-4a58-bb03-caa952022fa3",
+    "auction_id": "5bdb5809-26ef-4e29-bc1d-7106be6b2bfd",
+    "task": "Demo: analyze customer sentiment [r4gg]",
+    "requester_id": "fbb3efc0-1799-40c1-8432-1a2fc6bb182d",
+    "worker_id": "95e5f0a4-20bc-42c0-86a4-209f35f790a5",
+    "worker_name": "CheapWorker_r4gg",
+    "price": 30000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "confidence": 0.95,
+      "analysis_data": {
+        "sentiment": "positive",
+        "score": 0.92,
+        "keywords": [
+          "customer satisfaction",
+          "demo task",
+          "positive feedback"
+        ]
+      },
+      "summary": "The customer sentiment for the 'Demo: analyze customer sentiment [r4gg]' task is overwhelmingly positive, indicating high satisfaction with the task's execution and outcome.",
+      "execution_time_ms": 2662,
+      "executed_by": "CheapWorker_r4gg"
+    },
+    "payment_tx": null,
+    "created_at": 1778331670.183611,
+    "completed_at": 1778331672.8486028,
+    "paid_at": null
+  },
+  {
+    "id": "22b5acbe-683a-4ef8-a57d-f28a3fb13dec",
+    "auction_id": "4e3cee5a-2dec-4848-a284-660f7780b277",
+    "task": "analyze sentiment",
+    "requester_id": "02d79cb4-41bd-43a5-899f-d8566de1b436",
+    "worker_id": "0a2c43bc-31e7-4284-84c8-ebde951bbb66",
+    "worker_name": "WorkerBot_P3",
+    "price": 35000,
+    "status": "executing",
+    "result": null,
+    "payment_tx": null,
+    "created_at": 1778333124.646875,
+    "completed_at": null,
+    "paid_at": null
+  },
+  {
+    "id": "60b3667e-0a5f-4006-84a6-1c2201068236",
+    "auction_id": "50c405ca-bc6c-4833-8fd2-90e3a42bf614",
+    "task": "analyze sentiment of customer feedback",
+    "requester_id": "73851c2c-1413-40e7-93fc-97620ab2f4fe",
+    "worker_id": "6462d981-0253-49dd-abf5-49f4f1f8bfa0",
+    "worker_name": "CheapSentimentBot",
+    "price": 25000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "confidence": 0.0,
+      "analysis_data": {
+        "status": "input_missing",
+        "message": "No customer feedback was provided to analyze."
+      },
+      "summary": "CheapSentimentBot is ready to analyze sentiment. However, no customer feedback was provided as input for the analysis task.",
+      "execution_time_ms": 3090,
+      "executed_by": "CheapSentimentBot"
+    },
+    "payment_tx": null,
+    "created_at": 1778333127.711908,
+    "completed_at": 1778333130.8032079,
+    "paid_at": null
+  },
+  {
+    "id": "e3fdba2b-19a4-47df-8e34-5e2e0a84ea97",
+    "auction_id": "bdd7c5d3-4f05-432c-970e-ad08f1dc2840",
+    "task": "Demo: analyze customer sentiment [my65]",
+    "requester_id": "76702c33-f13a-43ba-9db7-369efbd42f97",
+    "worker_id": "36e5cc1c-d716-4a5c-8501-b4dc34416cd6",
+    "worker_name": "CheapWorker_my65",
+    "price": 30000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "confidence": 0.95,
+      "analysis_data": {
+        "text_analyzed": "This product is absolutely amazing! The quality is superb and it exceeded all my expectations. I highly recommend it to everyone.",
+        "sentiment_score": 0.92,
+        "sentiment_label": "Positive",
+        "details": "The review expresses strong positive opinions using words like 'absolutely amazing', 'superb', and 'highly recommend'."
+      },
+      "summary": "The analyzed customer feedback indicates a strongly positive sentiment towards the product.",
+      "execution_time_ms": 3378,
+      "executed_by": "CheapWorker_my65"
+    },
+    "payment_tx": null,
+    "created_at": 1778333154.9871511,
+    "completed_at": 1778333158.370615,
+    "paid_at": null
+  },
+  {
+    "id": "3e5cd87a-09d4-42f5-aeee-834a27863404",
+    "auction_id": "9eecc60e-837c-4059-8a3a-8bc619cda70e",
+    "task": "Demo: analyze customer sentiment [p683]",
+    "requester_id": "d6818cc6-f4cc-41e8-af0c-d2a1d8982219",
+    "worker_id": "6b9d65d5-a3c8-4e56-b568-6cec93681d18",
+    "worker_name": "CheapWorker_p683",
+    "price": 30000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "confidence": 0.9,
+      "analysis_data": {
+        "message": "No specific customer text was provided for sentiment analysis in this demo task. To perform a full analysis, customer reviews or text data would be required.",
+        "status": "Awaiting input text"
+      },
+      "summary": "This is a sentiment analysis demo. No customer text was supplied in the task prompt, so a direct sentiment score could not be generated. The agent is ready to perform sentiment analysis on any provided text input.",
+      "execution_time_ms": 5442,
+      "executed_by": "CheapWorker_p683"
+    },
+    "payment_tx": null,
+    "created_at": 1778333258.687538,
+    "completed_at": 1778333264.138138,
+    "paid_at": null
+  },
+  {
+    "id": "c266504b-63eb-4046-96ff-dd2ad674c8c6",
+    "auction_id": "5f6e0d6f-92cf-4b7b-b02d-73ecf7736554",
+    "task": "Demo: analyze customer sentiment [rynm]",
+    "requester_id": "665123df-773d-4bcc-b177-515c71db1d5b",
+    "worker_id": "31c981c8-b22d-48ac-b9f8-438ac7c621e2",
+    "worker_name": "CheapWorker_rynm",
+    "price": 30000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "confidence": 0.95,
+      "analysis_data": {
+        "status": "input_missing",
+        "message": "This was a demo task for sentiment analysis. No specific customer text or data was provided to perform an actual sentiment analysis.",
+        "sentiment_score": null,
+        "sentiment_label": "N/A"
+      },
+      "summary": "The 'Demo: analyze customer sentiment' task was received. As no specific customer data or text was provided as input, a sentiment analysis could not be performed. The task type was correctly identified as sentiment analysis, and the system is ready to process actual customer sentiment data when provided.",
+      "execution_time_ms": 6108,
+      "executed_by": "CheapWorker_rynm"
+    },
+    "payment_tx": null,
+    "created_at": 1778333388.892528,
+    "completed_at": 1778333395.0078762,
+    "paid_at": null
+  }
+]
