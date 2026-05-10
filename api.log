@@ -1,0 +1,13 @@
+
+🌐 AgentMesh API Gateway running on http://localhost:3000
+🔌 Socket.IO real-time events enabled
+📡 Python backend: http://localhost:5001
+⛓️  Solana cluster: devnet
+
+🔌 Client connected: OhYP50TmsIjaOa_AAAAC
+🔌 Client connected: 04QO8Rphx8FCYq_NAAAD
+🔌 Client connected: YEeAWs_41Skl_woDAAAG
+🔌 Client connected: D1j6vT649aavuLNIAAAI
+🔌 Client connected: zIFgBZmOLUxIFGsOAAAJ
+❌ Client disconnected: 04QO8Rphx8FCYq_NAAAD
+🔌 Client connected: GyCDEuuBwjBkgkReAAAL

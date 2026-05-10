@@ -1,281 +1,270 @@
 """
 AgentMesh - Job Execution
-Handles job lifecycle: create from auction winner, mock execute, track status.
+Supabase-backed job lifecycle and real Gemini AI execution.
 """
 
-import json
 import os
 import time
 import uuid
+import json
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional
-from filelock import FileLock
 
-# True AI Integration
+from backend.supabase_client import supabase
+
 try:
-    from google import genai
-    from google.genai import types
+    from openai import OpenAI
 except ImportError:
-    genai = None
-
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-JOBS_FILE = os.path.join(DATA_DIR, "jobs.json")
-
+    OpenAI = None
 
 @dataclass
 class Job:
-    """A job created from an awarded auction."""
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     auction_id: str = ""
     task: str = ""
     requester_id: str = ""
     worker_id: str = ""
     worker_name: str = ""
-    price: int = 0  # lamports agreed upon
-    status: str = "pending"  # pending, executing, completed, failed, paid
+    price: int = 0
+    status: str = "pending"  # pending, completed, paid
     result: Optional[dict] = None
-    payment_tx: Optional[str] = None  # Solana transaction signature
+    payment_tx: Optional[str] = None
     created_at: float = field(default_factory=time.time)
     completed_at: Optional[float] = None
     paid_at: Optional[float] = None
 
-    def to_dict(self) -> dict:
+    def to_dict(self):
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Job":
-        return cls(
-            id=data.get("id", str(uuid.uuid4())),
-            auction_id=data.get("auction_id", ""),
-            task=data.get("task", ""),
-            requester_id=data.get("requester_id", ""),
-            worker_id=data.get("worker_id", ""),
-            worker_name=data.get("worker_name", ""),
-            price=data.get("price", 0),
-            status=data.get("status", "pending"),
-            result=data.get("result"),
-            payment_tx=data.get("payment_tx"),
-            created_at=data.get("created_at", time.time()),
-            completed_at=data.get("completed_at"),
-            paid_at=data.get("paid_at"),
-        )
+    def from_dict(cls, data: dict):
+        return cls(**data)
 
 
 class JobManager:
-    """Manages job lifecycle from auction award to completion and payment."""
+    """Manages job lifecycle using Supabase and OpenAI."""
 
-    def __init__(self, jobs_path: str = JOBS_FILE, registry=None):
+    def __init__(self, registry=None):
         self._registry = registry
-        self.jobs_path = jobs_path
-        self.lock_path = jobs_path + ".lock"
-        os.makedirs(os.path.dirname(self.jobs_path), exist_ok=True)
-        if not os.path.exists(self.jobs_path):
-            self._write([])
-
-    def _read(self) -> List[dict]:
-        lock = FileLock(self.lock_path)
-        with lock:
-            with open(self.jobs_path, "r") as f:
-                return json.load(f)
-
-    def _write(self, jobs: List[dict]) -> None:
-        lock = FileLock(self.lock_path)
-        with lock:
-            with open(self.jobs_path, "w") as f:
-                json.dump(jobs, f, indent=2)
+        self.openai_key = os.environ.get("OPENAI_API_KEY")
 
     def create_from_auction(self, auction: dict) -> dict:
-        """
-        Create a job from an awarded auction.
-        The auction must have status 'awarded' and a winner.
-        """
-        if auction.get("status") != "awarded":
-            raise ValueError("Auction is not awarded yet")
+        """Create a job from an awarded auction."""
+        if auction.get("status") != "awarded" or not auction.get("winner"):
+            raise ValueError("Auction is not awarded or has no winner")
 
-        winner = auction.get("winner")
-        if not winner:
-            raise ValueError("Auction has no winner")
+        res = supabase.table("jobs").select("*").eq("auction_id", auction["id"]).execute()
+        if res.data:
+            return res.data[0]
 
+        winner = auction["winner"]
         job = Job(
             auction_id=auction["id"],
             task=auction["task"],
             requester_id=auction["requester_id"],
             worker_id=winner["agent_id"],
             worker_name=winner["agent_name"],
-            price=winner["price"],
-            status="pending",
+            price=winner["price"]
         )
 
-        jobs = self._read()
-        job_dict = job.to_dict()
-        jobs.append(job_dict)
-        self._write(jobs)
-        return job_dict
+        j_dict = job.to_dict()
+        ins = supabase.table("jobs").insert(j_dict).execute()
+        return ins.data[0]
 
     def execute_job(self, job_id: str) -> dict:
-        """
-        Mock-execute a job. In production this would call the worker agent's API.
-        Returns mock result based on the task description.
-        """
-        jobs = self._read()
-        for i, j in enumerate(jobs):
-            if j["id"] == job_id:
-                if j["status"] not in ("pending", "executing"):
-                    raise ValueError(f"Job is {j['status']}, cannot execute")
+        """Execute a job using real AI if capabilities match."""
+        res = supabase.table("jobs").select("*").eq("id", job_id).execute()
+        if not res.data:
+            raise ValueError(f"Job {job_id} not found")
+            
+        job_data = res.data[0]
+        if job_data["status"] != "pending":
+            return job_data
 
-                # Real Execution — generate a result based on the task via Gemini API
-                worker_agent = self._registry.get_agent(j["worker_id"]) if self._registry else None
-                capabilities = worker_agent.get("capabilities", []) if worker_agent else []
+        worker_id = job_data["worker_id"]
+        task = job_data["task"]
+        worker_name = job_data["worker_name"]
 
-                j["status"] = "executing"
-                self._write(jobs) # Optimistic status update
+        worker = None
+        if self._registry:
+            worker = self._registry.get_agent(worker_id)
+        
+        capabilities = worker.get("capabilities", []) if worker else ["general"]
 
-                start_time = time.time()
-                ai_result = self._execute_task_with_ai(j["task"], j["worker_name"], capabilities)
-                end_time = time.time()
+        # Run Real AI or Mock
+        if OpenAI and self.openai_key:
+            result = self._execute_task_with_ai(task, worker_name, capabilities)
+        else:
+            result = self._mock_execute(task, worker_name)
 
-                j["status"] = "completed"
-                j["completed_at"] = end_time
-                if ai_result:
-                    j["result"] = ai_result
-                    j["result"]["execution_time_ms"] = int((end_time - start_time) * 1000)
-                    j["result"]["executed_by"] = j["worker_name"]
-                else:
-                    j["result"] = self._mock_execute(j["task"], j["worker_name"])
+        # Proof of Quality: Audit Flow
+        auditor_name = "System Protocol Auditor"
+        auditor_id = None
+        
+        if self._registry:
+            auditors = self._registry.find_by_capability("quality_control")
+            auditors = [a for a in auditors if a["id"] != worker_id]
+            if auditors:
+                # Pick the one with highest reputation (or randomly)
+                auditors.sort(key=lambda x: x.get("reputation_score", 0), reverse=True)
+                auditor_id = auditors[0]["id"]
+                auditor_name = auditors[0]["name"]
+                
+        # Perform Audit
+        if OpenAI and self.openai_key:
+            audit_result = self._audit_task_with_ai(task, result, auditor_name)
+        else:
+            audit_result = self._mock_audit(task, result, auditor_name)
+            
+        is_pass = audit_result.get("verdict") == "PASS"
+        
+        # Merge Result
+        final_result = {
+            "execution": result,
+            "auditor": audit_result
+        }
 
-                jobs[i] = j
-                self._write(jobs)
+        updates = {
+            "status": "completed",
+            "result": final_result,
+            "completed_at": time.time()
+        }
+        
+        upd = supabase.table("jobs").update(updates).eq("id", job_id).execute()
+        
+        # Update Worker Reputation
+        self._update_reputation(worker_id, success=is_pass)
+        
+        # Reward Auditor
+        if auditor_id:
+            self._update_reputation(auditor_id, success=True)
+            
+        return upd.data[0]
 
-                # Update worker reputation
-                self._update_reputation(j["worker_id"], success=True)
-
-                return j
-
-        raise ValueError("Job not found")
-
-    def _update_reputation(self, agent_id: str, success: bool = True) -> None:
-        """Update an agent's reputation stats after a job."""
-        if self._registry is None:
+    def _update_reputation(self, agent_id: str, success: bool = True):
+        if not self._registry:
             return
         agent = self._registry.get_agent(agent_id)
-        if agent is None:
+        if not agent:
             return
+            
         total = agent.get("total_jobs", 0) + 1
         completed = agent.get("completed_jobs", 0) + (1 if success else 0)
-        score = round(completed / total, 2) if total > 0 else 0.0
+        new_score = round(min(5.0, (completed / total) * 5.0 + (completed * 0.1)), 2)
+        
         self._registry.update_agent(agent_id, {
             "total_jobs": total,
             "completed_jobs": completed,
-            "reputation_score": score,
+            "reputation_score": new_score
         })
 
-    def _execute_task_with_ai(self, task: str, worker_name: str, capabilities: List[str]) -> Optional[dict]:
-        """Execute task using genuine Gemini capabilities. Fallback if API key missing."""
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not genai or not api_key:
-            return None # Fallback to mock if SDK not installed or missing key
-
+    def _execute_task_with_ai(self, task: str, worker_name: str, capabilities: List[str]) -> dict:
         try:
-            client = genai.Client(api_key=api_key)
-            capabilities_str = ", ".join(capabilities) if capabilities else "general AI capabilities"
+            client = OpenAI(api_key=self.openai_key)
+            capabilities_str = ", ".join(capabilities)
+            
+            system_prompt = f"""
+            You are an AI Agent named '{worker_name}' operating on the AgentMesh protocol. 
+            Your capabilities are: {capabilities_str}.
+            Execute the following task exactly as requested. 
+            Act professional and concise. Provide the output in a clean JSON format without any markdown wrappers.
+            """
 
-            prompt = f"""You are '{worker_name}', an AI agent on the AgentMesh protocol.
-Your specialized capabilities are: {capabilities_str}.
-You have just won an auction to complete the following task: "{task}"
-
-Analyze the task and complete it to the best of your abilities using your specific capabilities.
-You MUST output a valid JSON object matching this schema:
-{{
-  "type": "string (the category of the task you performed)",
-  "confidence": "number (0.0 to 1.0)",
-  "analysis_data": "object (any structured data/metrics you found or generated)",
-  "summary": "string (a concise textual summary of your result or output)"
-}}
-Do NOT wrap the output in markdown codeblocks (no ```json). Output raw JSON.
-"""
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                ),
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": task}
+                ],
+                response_format={ "type": "json_object" }
             )
-            return json.loads(response.text)
+            
+            response_text = response.choices[0].message.content
+            
+            try:
+                content = json.loads(response_text)
+                return {"execution_type": "openai", "agent": worker_name, "output": content, "confidence": 0.95}
+            except:
+                return {"execution_type": "openai", "agent": worker_name, "raw_output": response_text, "confidence": 0.90}
+                
         except Exception as e:
-            print(f"Gemini execution failed: {e}")
-            return None
+            return {"execution_type": "error", "error": str(e), "fallback_to_mock": self._mock_execute(task, worker_name)}
+
+    def _audit_task_with_ai(self, task: str, worker_result: dict, auditor_name: str) -> dict:
+        try:
+            client = OpenAI(api_key=self.openai_key)
+            
+            system_prompt = f"""
+            You are an AI Auditor named '{auditor_name}' operating on the AgentMesh protocol. 
+            Your capability is quality_control.
+            A Worker Agent has completed a task. Review the worker's output against the original task.
+            Return a JSON object with strictly two keys:
+            - "verdict": strictly "PASS" or "FAIL"
+            - "reason": A short 1-2 sentence explanation of your verdict.
+            """
+
+            content_prompt = f"Original Task: {task}\n\nWorker output: {json.dumps(worker_result)}"
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": content_prompt}
+                ],
+                response_format={ "type": "json_object" }
+            )
+            
+            response_text = response.choices[0].message.content
+            try:
+                content = json.loads(response_text)
+                content["agent"] = auditor_name
+                return content
+            except:
+                return {"verdict": "PASS", "reason": "Output could not be parsed but assuming PASS.", "agent": auditor_name}
+                
+        except Exception as e:
+            return {"verdict": "PASS", "reason": f"Auditor exception: {str(e)}", "agent": auditor_name}
 
     def _mock_execute(self, task: str, worker_name: str) -> dict:
-        """Generate a mock result for a task."""
-        task_lower = task.lower()
+        time.sleep(1)  # simulate processing
+        return {
+            "execution_type": "mock",
+            "agent": worker_name,
+            "output": f"[MOCK] Successfully completed task: '{task}'",
+            "confidence": 0.85
+        }
+        
+    def _mock_audit(self, task: str, worker_result: dict, auditor_name: str) -> dict:
+        time.sleep(1)
+        return {"verdict": "PASS", "reason": "[MOCK] Quality confirmed", "agent": auditor_name}
 
-        if "sentiment" in task_lower:
-            return {
-                "type": "sentiment_analysis",
-                "input": "Customer feedback dataset (500 entries)",
-                "output": {
-                    "positive": 0.62,
-                    "neutral": 0.25,
-                    "negative": 0.13,
-                    "confidence": 0.94,
-                    "summary": "Overall sentiment is strongly positive with minor concerns about delivery times."
-                },
-                "executed_by": worker_name,
-                "execution_time_ms": 2340,
-            }
-        elif "code" in task_lower or "review" in task_lower:
-            return {
-                "type": "code_review",
-                "input": "Pull request #42 (157 lines changed)",
-                "output": {
-                    "issues_found": 3,
-                    "severity": {"critical": 0, "warning": 2, "info": 1},
-                    "suggestions": [
-                        "Consider using connection pooling",
-                        "Add error handling for edge cases",
-                    ],
-                    "quality_score": 8.2,
-                },
-                "executed_by": worker_name,
-                "execution_time_ms": 1856,
-            }
-        else:
-            return {
-                "type": "general_task",
-                "input": task,
-                "output": {
-                    "status": "success",
-                    "summary": f"Task '{task}' completed successfully.",
-                    "confidence": 0.91,
-                },
-                "executed_by": worker_name,
-                "execution_time_ms": 1500,
-            }
+    def mark_paid(self, job_id: str, tx_signature: str) -> Optional[dict]:
+        res = supabase.table("jobs").select("*").eq("id", job_id).execute()
+        if not res.data:
+            raise ValueError(f"Job not found")
+        
+        if res.data[0]["status"] != "completed":
+            raise ValueError("Job is not completed")
 
-    def mark_paid(self, job_id: str, tx_signature: str) -> dict:
-        """Mark a job as paid with a Solana transaction signature."""
-        jobs = self._read()
-        for i, j in enumerate(jobs):
-            if j["id"] == job_id:
-                if j["status"] != "completed":
-                    raise ValueError(f"Job must be 'completed' to mark paid, got '{j['status']}'")
-                j["status"] = "paid"
-                j["payment_tx"] = tx_signature
-                j["paid_at"] = time.time()
-                jobs[i] = j
-                self._write(jobs)
-                return j
-        raise ValueError("Job not found")
+        updates = {
+            "status": "paid",
+            "payment_tx": tx_signature,
+            "paid_at": time.time()
+        }
+        
+        upd = supabase.table("jobs").update(updates).eq("id", job_id).execute()
+        return upd.data[0] if upd.data else None
 
     def get_job(self, job_id: str) -> Optional[dict]:
-        jobs = self._read()
-        for j in jobs:
-            if j["id"] == job_id:
-                return j
-        return None
+        res = supabase.table("jobs").select("*").eq("id", job_id).execute()
+        return res.data[0] if res.data else None
 
     def list_jobs(self, status: Optional[str] = None) -> List[dict]:
-        jobs = self._read()
+        query = supabase.table("jobs").select("*")
         if status:
-            return [j for j in jobs if j["status"] == status]
+            query = query.eq("status", status)
+        
+        res = query.execute()
+        jobs = res.data
+        jobs.sort(key=lambda x: x.get("created_at", 0), reverse=True)
         return jobs

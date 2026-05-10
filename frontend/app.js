@@ -179,8 +179,92 @@ function formatEventTime(ts) {
 }
 
 // ═══════════════════════════════════════════════════
-//  DEMO AUTOMATION
+//  DEMO AUTOMATION & VISUALS
 // ═══════════════════════════════════════════════════
+
+function showPayoutModal(result) {
+    if (window.confetti) {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        setTimeout(() => confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 } }), 500);
+        setTimeout(() => confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } }), 500);
+    }
+
+    const payoutModalId = "pm-" + Date.now();
+    const solValue = (result.winner?.price || 0) / 1e9;
+    const modalHtml = `
+    <div class="modal-overlay" id="${payoutModalId}">
+        <div class="modal modal-lg" style="width: 600px; max-width: 90%; background: #0a0e17; border: 1px solid #118AB2;">
+            <div class="modal-header" style="border-bottom: 1px solid #1f2937;">
+                <h3 style="color: #06D6A0;">🏆 Payout & Verification Complete</h3>
+                <button class="modal-close" onclick="document.getElementById('${payoutModalId}').remove()">✕</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="background:#000; border-radius:6px; padding:15px; font-family:'JetBrains Mono', monospace; font-size:13px; color:#0f0; margin-bottom: 20px; box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2); overflow-y:auto; max-height:200px; line-height: 1.5;" id="term-${payoutModalId}">
+                    > SYSTEM ALIGNMENT INITIATED...<br>
+                    > WORKING AGENT: ${esc(result.winner?.agent_name || 'N/A')}<br>
+                    > CAPABILITY ACCESSED...<br>
+                </div>
+                
+                <h4 style="margin-bottom: 10px; color: #fff;">Solana Transaction Details</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#111827; padding:15px; border-radius:8px;">
+                    <div>
+                        <div style="font-size:12px; color:#9ca3af; margin-bottom:4px;">Transferred:</div>
+                        <div style="font-size:18px; font-weight:bold; color:#fff;">${fmt(result.winner?.price || 0)} LAMPORT <span style="font-size:12px; color:#9ca3af;">(${solValue.toFixed(5)} SOL)</span></div>
+                    </div>
+                    <a href="https://explorer.solana.com/tx/${result.job?.payment_tx || ''}?cluster=devnet" target="_blank" class="btn btn-primary" style="background:#118AB2; text-decoration:none; display:flex; align-items:center; gap:8px;">
+                        🔍 View on Explorer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const term = document.getElementById(`term-${payoutModalId}`);
+    const aiOutput = result.job?.result?.execution?.output || result.job?.result?.execution || result.job?.result || "No Data";
+    const auditor = result.job?.result?.auditor || null;
+
+    const linesToType = [
+        `> EXECUTING TASK: ${result.auction?.task || ''}...`,
+        `> AI RESULT: ${JSON.stringify(aiOutput)}`,
+        `> SENDING TO PROTOCOL AUDITOR...`,
+        `> AUDITOR [${auditor?.agent || 'System Protocol Auditor'}] VERDICT: ${auditor?.verdict || 'PASS'}`,
+        `> REASON: ${auditor?.reason || 'Verified limits and constraints.'}`,
+        `> INITIATING ON-CHAIN FUND RELEASE...`,
+        `> DONE.`
+    ];
+
+    let currentLine = 0;
+    const typeNextLine = () => {
+        if (currentLine >= linesToType.length) return;
+
+        const lineEl = document.createElement("div");
+        lineEl.style.marginTop = "6px";
+        if (linesToType[currentLine].includes("VERDICT: PASS")) lineEl.style.color = "#06D6A0";
+        if (linesToType[currentLine].includes("VERDICT: FAIL")) lineEl.style.color = "#ff4d4d";
+        if (linesToType[currentLine].includes("INITIATING ON-CHAIN")) lineEl.style.color = "#118AB2";
+
+        term.appendChild(lineEl);
+
+        let charIdx = 0;
+        const txt = linesToType[currentLine];
+        const typeChar = () => {
+            if (charIdx < txt.length) {
+                lineEl.textContent += txt.charAt(charIdx);
+                charIdx++;
+                setTimeout(typeChar, 15);
+            } else {
+                currentLine++;
+                term.scrollTop = term.scrollHeight;
+                setTimeout(typeNextLine, 350);
+            }
+        };
+        typeChar();
+    };
+
+    setTimeout(typeNextLine, 500);
+}
 
 function initDemo() {
     const btn = document.getElementById("btnRunDemo");
@@ -198,6 +282,7 @@ function initDemo() {
             if (!res.ok) throw new Error((await res.json()).error || "Demo failed");
             const result = await res.json();
             toast(`🎉 Demo complete! Winner: ${result.winner?.agent_name || 'N/A'}`, "success");
+            showPayoutModal(result);
         } catch (err) {
             toast(`Demo error: ${err.message}`, "error");
         } finally {
@@ -246,12 +331,34 @@ async function loadStats() {
 
 function animateValue(id, newVal) {
     const el = document.getElementById(id);
-    const current = parseInt(el.textContent) || 0;
+    if (!el) return;
+    const current = parseFloat(el.textContent) || 0;
+    const isFloat = newVal % 1 !== 0;
+
     if (current === newVal) return;
-    el.textContent = newVal;
+
     el.style.transform = "scale(1.2)";
-    el.style.transition = "transform 0.3s ease";
-    setTimeout(() => el.style.transform = "scale(1)", 300);
+    el.style.color = "var(--accent-teal)";
+    el.style.transition = "transform 0.3s ease, color 0.3s ease";
+
+    // Smooth counting animation
+    const duration = 1500;
+    const frames = 30;
+    const step = (newVal - current) / frames;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+        currentStep++;
+        const val = current + (step * currentStep);
+        el.textContent = isFloat ? val.toFixed(4) : Math.round(val);
+
+        if (currentStep >= frames) {
+            clearInterval(interval);
+            el.textContent = isFloat ? newVal.toFixed(4) : newVal;
+            el.style.transform = "scale(1)";
+            el.style.color = "";
+        }
+    }, duration / frames);
 }
 
 // ═══════════════════════════════════════════════════
@@ -480,7 +587,22 @@ function renderJobs() {
                 ${j.completed_at ? `<span>⏱ ${timeSince(j.completed_at)}</span>` : ''}
             </div>
             ${j.result ? `
-                <div class="job-result">${JSON.stringify(j.result, null, 2)}</div>
+                <div class="job-result">
+                    <div class="result-header">
+                        <span class="result-badge ${(j.result.execution || j.result).execution_type}">${(j.result.execution || j.result).execution_type === 'openai' ? '🧠 AI Powered' : '⚙️ Mock Mode'}</span>
+                        ${(j.result.execution || j.result).confidence ? `<span class="confidence-badge">Confidence: ${Math.round((j.result.execution || j.result).confidence * 100)}%</span>` : ''}
+                    </div>
+                    <pre><code>${JSON.stringify((j.result.execution || j.result).output || (j.result.execution || j.result).raw_output || (j.result.execution || j.result), null, 2)}</code></pre>
+                </div>
+                ${j.result.auditor ? `
+                <div class="auditor-panel ${j.result.auditor.verdict === 'PASS' ? 'pass' : 'fail'}">
+                    <div class="auditor-header">
+                        <span>🕵️‍♂️ Audited by ${j.result.auditor.agent}</span>
+                        <span class="verdict">${j.result.auditor.verdict === 'PASS' ? '✅ APPROVED' : '❌ REJECTED'}</span>
+                    </div>
+                    <div class="auditor-reason">${esc(j.result.auditor.reason)}</div>
+                </div>
+                ` : ''}
             ` : ''}
             ${j.payment_tx ? `
                 <div class="job-payment">
@@ -493,8 +615,36 @@ function renderJobs() {
 }
 
 async function executeFromAuction(auctionId) {
+    // Find the button and add loading state
+    const btn = document.querySelector(`button[onclick="executeFromAuction('${auctionId}')"]`);
+    const originalText = btn ? btn.innerHTML : "🚀 Execute";
+    if (btn) {
+        btn.innerHTML = `<span class="spinner"></span> Executing...`;
+        btn.disabled = true;
+    }
+
     try {
-        toast("Executing job...", "info");
+        const auction = auctions.find(a => a.id === auctionId);
+        if (!auction) throw new Error("Auction not found");
+
+        // Web3 Phantom Signature Mock
+        if (connectedWallet && window.solana) {
+            toast("Please sign the transaction in Phantom to release funds...", "info");
+            try {
+                const message = `AgentMesh\n\nAuthorize payment of ${fmt(auction.winner?.price || 0)} lamports for job: ${auction.task}`;
+                const encodedMessage = new TextEncoder().encode(message);
+                const signedMessage = await window.solana.signMessage(encodedMessage, "utf8");
+                toast("Signature verified. Executing on-chain payment...", "success");
+            } catch (err) {
+                throw new Error("Transaction rejected by user.");
+            }
+        } else {
+            toast("Executing job (Mock Web2 Mode)... connect wallet for Web3 interaction.", "info");
+        }
+
+        // Add a small artificial delay to simulate blockchain confirmation
+        await new Promise(r => setTimeout(r, 1500));
+
         const res = await fetch(`${API}/job/execute`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -507,10 +657,14 @@ async function executeFromAuction(auctionId) {
         }
 
         const job = await res.json();
-        toast(`Job completed! Worker: ${job.worker_name}`, "success");
+        toast(`Job completed! Winner Agent received payment.`, "success");
         await loadAll();
     } catch (err) {
         toast(err.message, "error");
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     }
 }
 

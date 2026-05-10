@@ -1,90 +1,64 @@
 """
 AgentMesh - Agent Registry
-Thread-safe JSON-backed registry for agent storage (mock on-chain).
+Supabase-backed registry for agent storage.
 """
 
-import json
-import os
 from typing import List, Optional
-from filelock import FileLock
 from backend.agent import Agent
-
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-REGISTRY_FILE = os.path.join(DATA_DIR, "registry.json")
-LOCK_FILE = REGISTRY_FILE + ".lock"
-
+from backend.supabase_client import supabase
 
 class AgentRegistry:
-    """Thread-safe JSON-backed agent registry."""
+    """Supabase-backed agent registry."""
 
-    def __init__(self, registry_path: str = REGISTRY_FILE):
-        self.registry_path = registry_path
-        self.lock_path = registry_path + ".lock"
-        os.makedirs(os.path.dirname(self.registry_path), exist_ok=True)
-        if not os.path.exists(self.registry_path):
-            self._write([])
-
-    def _read(self) -> List[dict]:
-        """Read all agents from JSON file."""
-        lock = FileLock(self.lock_path)
-        with lock:
-            with open(self.registry_path, "r") as f:
-                return json.load(f)
-
-    def _write(self, agents: List[dict]) -> None:
-        """Write agents list to JSON file."""
-        lock = FileLock(self.lock_path)
-        with lock:
-            with open(self.registry_path, "w") as f:
-                json.dump(agents, f, indent=2)
+    def __init__(self):
+        pass
 
     def register(self, agent: Agent) -> dict:
         """
         Register a new agent in the registry.
         Returns the registered agent as a dict.
         """
-        agents = self._read()
-        
         # Check for duplicate names
-        for existing in agents:
-            if existing["name"].lower() == agent.name.lower():
-                raise ValueError(f"Agent with name '{agent.name}' already exists")
+        existing = supabase.table("agents").select("id").ilike("name", agent.name).execute()
+        if existing.data:
+            raise ValueError(f"Agent with name '{agent.name}' already exists")
         
         agent_dict = agent.to_dict()
-        agents.append(agent_dict)
-        self._write(agents)
-        return agent_dict
+        response = supabase.table("agents").insert(agent_dict).execute()
+        return response.data[0]
 
     def list_agents(self) -> List[dict]:
         """Return all registered agents."""
-        return self._read()
+        response = supabase.table("agents").select("*").execute()
+        return response.data
 
     def get_agent(self, agent_id: str) -> Optional[dict]:
         """Get a specific agent by ID."""
-        agents = self._read()
-        for agent in agents:
-            if agent["id"] == agent_id:
-                return agent
+        response = supabase.table("agents").select("*").eq("id", agent_id).execute()
+        if response.data:
+            return response.data[0]
         return None
 
     def update_agent(self, agent_id: str, updates: dict) -> Optional[dict]:
         """Update an agent's fields by ID."""
-        agents = self._read()
-        for i, agent in enumerate(agents):
-            if agent["id"] == agent_id:
-                agents[i].update(updates)
-                self._write(agents)
-                return agents[i]
+        response = supabase.table("agents").update(updates).eq("id", agent_id).execute()
+        if response.data:
+            return response.data[0]
         return None
 
     def find_by_capability(self, capability: str) -> List[dict]:
         """Find all agents that have a given capability."""
-        agents = self._read()
+        # Supabase Postgres array contains query
+        # Since capabilities are array of strings, we use the `cs` (contains) array operator in PostgREST
+        # However, for simplicity and case-insensitivity, we can fetch all and filter in Python,
+        # or use exact array match if we assume case matches. Let's do a Python filter for now.
+        agents = self.list_agents()
         return [
             a for a in agents
             if capability.lower() in [c.lower() for c in a.get("capabilities", [])]
         ]
 
     def clear(self) -> None:
-        """Clear all agents from the registry."""
-        self._write([])
+        """Clear all agents from the registry (for testing only)."""
+        # supabase-py doesn't support truncate easily, so we delete where ID is not null
+        supabase.table("agents").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()

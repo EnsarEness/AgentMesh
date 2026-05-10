@@ -255,5 +255,32 @@
     "created_at": 1778333388.892528,
     "completed_at": 1778333395.0078762,
     "paid_at": null
+  },
+  {
+    "id": "b6d62438-6414-4fe4-b91a-2571dac147c3",
+    "auction_id": "dfb0e940-a77e-4760-bd6d-d68b17994057",
+    "task": "Demo: analyze customer sentiment [96uc]",
+    "requester_id": "7569ceb1-3db0-4add-b477-83c812017eb6",
+    "worker_id": "6032ce4a-55ed-4989-af9b-355a0e7dea60",
+    "worker_name": "CheapWorker_96uc",
+    "price": 30000,
+    "status": "completed",
+    "result": {
+      "type": "sentiment_analysis",
+      "input": "Customer feedback dataset (500 entries)",
+      "output": {
+        "positive": 0.62,
+        "neutral": 0.25,
+        "negative": 0.13,
+        "confidence": 0.94,
+        "summary": "Overall sentiment is strongly positive with minor concerns about delivery times."
+      },
+      "executed_by": "CheapWorker_96uc",
+      "execution_time_ms": 2340
+    },
+    "payment_tx": null,
+    "created_at": 1778374503.4197109,
+    "completed_at": 1778374503.477777,
+    "paid_at": null
   }
 ]

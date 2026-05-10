@@ -1,0 +1,33 @@
+
+🌐 AgentMesh API Gateway running on http://localhost:3000
+🔌 Socket.IO real-time events enabled
+📡 Python backend: http://localhost:5001
+⛓️  Solana cluster: devnet
+
+🔌 Client connected: D5w2kBr1T5LJEXeyAAAF
+🔌 Client connected: tCxeq0sGAtmk8AcJAAAG
+🔌 Client connected: N6HGY7M_WmwHwwd3AAAH
+🔌 Client connected: 29T1353zCLMEXNqcAAAI
+🔌 Client connected: ebP_96mpsj60QQE_AAAJ
+❌ Client disconnected: D5w2kBr1T5LJEXeyAAAF
+🔌 Client connected: mqf7l_GkFQW1Qjb-AAAL
+💧 Requesting airdrop of 1 SOL to 9gANmAf71Lyk1QMx7HvamUuNQCieqfjgCxwinrYq3Yuo...
+Server responded with 429 Too Many Requests.  Retrying after 500ms delay...
+Server responded with 429 Too Many Requests.  Retrying after 1000ms delay...
+Server responded with 429 Too Many Requests.  Retrying after 2000ms delay...
+Server responded with 429 Too Many Requests.  Retrying after 4000ms delay...
+⚠️ Airdrop warning: 429 Too Many Requests:  {"jsonrpc":"2.0","error":{"code": 429, "message":"You've either reached your airdrop limit today or the airdrop faucet has run dry. Please visit https://faucet.solana.com for alternate sources of test SOL"}, "id": "ddb37d2a-d4ef-48bc-8be7-3d960741833f" } 
+
+⏳ Balance: 0 lamports, waiting... (attempt 1)
+⏳ Balance: 0 lamports, waiting... (attempt 2)
+⏳ Balance: 0 lamports, waiting... (attempt 3)
+⏳ Balance: 0 lamports, waiting... (attempt 4)
+⏳ Balance: 0 lamports, waiting... (attempt 5)
+⏳ Balance: 0 lamports, waiting... (attempt 6)
+⏳ Balance: 0 lamports, waiting... (attempt 7)
+⏳ Balance: 0 lamports, waiting... (attempt 8)
+⏳ Balance: 0 lamports, waiting... (attempt 9)
+⏳ Balance: 0 lamports, waiting... (attempt 10)
+⚠️ Devnet faucet failed or rate-limited. Falling back to simulated transaction for demo purposes.
+🔌 Client connected: nyZLXJZRiMJyeGc1AAAN
+❌ Client disconnected: nyZLXJZRiMJyeGc1AAAN

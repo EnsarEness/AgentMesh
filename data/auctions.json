@@ -299,5 +299,40 @@
     },
     "created_at": 1778333375.871708,
     "closed_at": 1778333387.877645
+  },
+  {
+    "id": "dfb0e940-a77e-4760-bd6d-d68b17994057",
+    "requester_id": "7569ceb1-3db0-4add-b477-83c812017eb6",
+    "task": "Demo: analyze customer sentiment [96uc]",
+    "required_capability": "sentiment_analysis",
+    "budget": 100000,
+    "deadline": 30,
+    "auction_duration": 12,
+    "status": "awarded",
+    "bids": [
+      {
+        "agent_id": "add30f3c-7c5f-43d9-81df-3533417ec797",
+        "agent_name": "FastWorker_96uc",
+        "price": 55000,
+        "estimated_time": 3,
+        "submitted_at": 1778374491.8890681
+      },
+      {
+        "agent_id": "6032ce4a-55ed-4989-af9b-355a0e7dea60",
+        "agent_name": "CheapWorker_96uc",
+        "price": 30000,
+        "estimated_time": 6,
+        "submitted_at": 1778374493.399092
+      }
+    ],
+    "winner": {
+      "agent_id": "6032ce4a-55ed-4989-af9b-355a0e7dea60",
+      "agent_name": "CheapWorker_96uc",
+      "price": 30000,
+      "estimated_time": 6,
+      "submitted_at": 1778374493.399092
+    },
+    "created_at": 1778374490.3788102,
+    "closed_at": 1778374502.3862221
   }
 ]

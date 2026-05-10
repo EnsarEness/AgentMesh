@@ -1,61 +1,53 @@
 """
 AgentMesh - Auction Model & Engine
-Reverse auction system: requester broadcasts a job, agents bid, lowest price wins.
+Supabase-backed reverse auction system.
 """
 
-import json
-import os
 import time
 import uuid
 import threading
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional, Dict
-from filelock import FileLock
-
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-AUCTIONS_FILE = os.path.join(DATA_DIR, "auctions.json")
-
+from backend.supabase_client import supabase
 
 @dataclass
 class Bid:
-    """A bid submitted by an agent for an auction."""
     agent_id: str
     agent_name: str
-    price: int  # lamports
-    estimated_time: int  # seconds
+    price: int
+    estimated_time: int
     submitted_at: float = field(default_factory=time.time)
 
-    def to_dict(self) -> dict:
+    def to_dict(self):
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Bid":
+    def from_dict(cls, data: dict):
         return cls(**data)
 
 
 @dataclass
 class Auction:
-    """A reverse auction for a job on AgentMesh."""
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     requester_id: str = ""
     task: str = ""
     required_capability: str = ""
-    budget: int = 0  # lamports
-    deadline: int = 30  # seconds for the job itself
-    auction_duration: int = 10  # seconds the auction stays open
-    status: str = "open"  # open, closed, awarded, expired
+    budget: int = 0
+    deadline: int = 30
+    auction_duration: int = 10
+    status: str = "open"  # open, awarded, expired
     bids: List[dict] = field(default_factory=list)
     winner: Optional[dict] = None
     created_at: float = field(default_factory=time.time)
     closed_at: Optional[float] = None
 
-    def to_dict(self) -> dict:
+    def to_dict(self):
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Auction":
+    def from_dict(cls, data: dict):
         return cls(
-            id=data.get("id", str(uuid.uuid4())),
+            id=data.get("id"),
             requester_id=data.get("requester_id", ""),
             task=data.get("task", ""),
             required_capability=data.get("required_capability", ""),
@@ -66,54 +58,23 @@ class Auction:
             bids=data.get("bids", []),
             winner=data.get("winner"),
             created_at=data.get("created_at", time.time()),
-            closed_at=data.get("closed_at"),
+            closed_at=data.get("closed_at")
         )
 
-    @property
-    def time_remaining(self) -> float:
-        """Seconds remaining in the auction."""
+    def time_remaining(self) -> int:
         elapsed = time.time() - self.created_at
-        remaining = self.auction_duration - elapsed
-        return max(0, remaining)
+        rem = self.auction_duration - elapsed
+        return int(rem) if rem > 0 else 0
 
-    @property
     def is_expired(self) -> bool:
-        return self.time_remaining <= 0
+        return self.time_remaining() <= 0
 
 
 class AuctionEngine:
-    """Manages reverse auctions with timed bidding and auto-closure."""
+    """Manages reverse auctions via Supabase with background auto-closure."""
 
-    def __init__(self, auctions_path: str = AUCTIONS_FILE):
-        self.auctions_path = auctions_path
-        self.lock_path = auctions_path + ".lock"
-        os.makedirs(os.path.dirname(self.auctions_path), exist_ok=True)
-        if not os.path.exists(self.auctions_path):
-            self._write([])
-        # In-memory timers for auto-closing auctions
-        self._timers: Dict[str, threading.Timer] = {}
-
-    def _read(self) -> List[dict]:
-        lock = FileLock(self.lock_path)
-        with lock:
-            with open(self.auctions_path, "r") as f:
-                return json.load(f)
-
-    def _write(self, auctions: List[dict]) -> None:
-        lock = FileLock(self.lock_path)
-        with lock:
-            with open(self.auctions_path, "w") as f:
-                json.dump(auctions, f, indent=2)
-
-    def _update_auction(self, auction_id: str, updates: dict) -> Optional[dict]:
-        """Update an auction by ID and return the updated version."""
-        auctions = self._read()
-        for i, a in enumerate(auctions):
-            if a["id"] == auction_id:
-                auctions[i].update(updates)
-                self._write(auctions)
-                return auctions[i]
-        return None
+    def __init__(self):
+        pass
 
     def create_auction(self, requester_id: str, task: str, required_capability: str,
                        budget: int, deadline: int = 30, auction_duration: int = 10) -> dict:
@@ -127,154 +88,137 @@ class AuctionEngine:
             required_capability=required_capability,
             budget=budget,
             deadline=deadline,
-            auction_duration=auction_duration,
+            auction_duration=auction_duration
         )
+        
+        auc_dict = auction.to_dict()
+        response = supabase.table("auctions").insert(auc_dict).execute()
+        created = response.data[0]
 
-        auctions = self._read()
-        auction_dict = auction.to_dict()
-        auctions.append(auction_dict)
-        self._write(auctions)
-
-        # Schedule auto-close
-        timer = threading.Timer(auction_duration, self._auto_close, args=[auction.id])
+        # Start auto-close timer
+        timer = threading.Timer(auction_duration + 0.5, self._auto_close, args=[created["id"]])
         timer.daemon = True
         timer.start()
-        self._timers[auction.id] = timer
 
-        return auction_dict
+        return created
 
     def submit_bid(self, auction_id: str, agent_id: str, agent_name: str,
                    price: int, estimated_time: int) -> dict:
-        """
-        Submit a bid to an auction.
-        Returns the bid dict or raises ValueError if invalid.
-        """
-        auctions = self._read()
-        auction = None
-        for a in auctions:
-            if a["id"] == auction_id:
-                auction = a
-                break
+        """Submit a bid to an auction."""
+        res = supabase.table("auctions").select("*").eq("id", auction_id).execute()
+        if not res.data:
+            raise ValueError(f"Auction {auction_id} not found")
+        
+        auction_data = res.data[0]
+        auction = Auction.from_dict(auction_data)
 
-        if auction is None:
-            raise ValueError("Auction not found")
+        if auction.status != "open":
+            raise ValueError(f"Auction is {auction.status}")
 
-        # Check auction is still open
-        auction_obj = Auction.from_dict(auction)
-        if auction_obj.status != "open":
-            raise ValueError(f"Auction is {auction_obj.status}, not accepting bids")
-        if auction_obj.is_expired:
+        if auction.is_expired():
+            self._close_auction(auction_id)
             raise ValueError("Auction has expired")
 
-        # Check bid is within budget
-        if price > auction["budget"]:
-            raise ValueError(f"Bid price {price} exceeds budget {auction['budget']}")
+        if price > auction.budget:
+            raise ValueError(f"Bid price {price} exceeds budget {auction.budget}")
 
-        # Check agent hasn't already bid
-        for bid in auction.get("bids", []):
-            if bid["agent_id"] == agent_id:
-                raise ValueError("Agent has already submitted a bid")
+        if estimated_time > auction.deadline:
+            raise ValueError(f"Estimated time {estimated_time} exceeds deadline {auction.deadline}")
 
-        bid = Bid(
-            agent_id=agent_id,
-            agent_name=agent_name,
-            price=price,
-            estimated_time=estimated_time,
-        )
+        # Check existing bids
+        bids = auction.bids
+        for b in bids:
+            if b.get("agent_id") == agent_id:
+                raise ValueError("Agent has already bid on this auction")
 
-        bid_dict = bid.to_dict()
+        bid = Bid(agent_id=agent_id, agent_name=agent_name, price=price, estimated_time=estimated_time)
+        bids.append(bid.to_dict())
 
-        # Add bid to auction
-        for i, a in enumerate(auctions):
-            if a["id"] == auction_id:
-                auctions[i]["bids"].append(bid_dict)
-                self._write(auctions)
-                return bid_dict
+        # Update in DB
+        upd = supabase.table("auctions").update({"bids": bids}).eq("id", auction_id).execute()
+        return upd.data[0]
 
-        raise ValueError("Failed to submit bid")
-
-    def _auto_close(self, auction_id: str) -> None:
+    def _auto_close(self, auction_id: str):
         """Auto-close an auction and select the winner (lowest price)."""
         self._close_auction(auction_id)
 
     def _close_auction(self, auction_id: str) -> Optional[dict]:
-        """Close an auction and determine the winner by lowest price."""
-        auctions = self._read()
-        for i, a in enumerate(auctions):
-            if a["id"] == auction_id:
-                if a["status"] != "open":
-                    return a
+        res = supabase.table("auctions").select("*").eq("id", auction_id).execute()
+        if not res.data:
+            return None
+        
+        data = res.data[0]
+        if data["status"] != "open":
+            return data
 
-                bids = a.get("bids", [])
-                if bids:
-                    # Sort by price (ascending), then by submitted_at (earliest first)
-                    winner = min(bids, key=lambda b: (b["price"], b["submitted_at"]))
-                    a["winner"] = winner
-                    a["status"] = "awarded"
-                else:
-                    a["status"] = "expired"
+        bids = data.get("bids", [])
+        status = "expired"
+        winner = None
 
-                a["closed_at"] = time.time()
-                auctions[i] = a
-                self._write(auctions)
+        if bids:
+            # Sort by lowest price
+            bids.sort(key=lambda x: x["price"])
+            winner = bids[0]
+            status = "awarded"
 
-                # Clean up timer
-                if auction_id in self._timers:
-                    del self._timers[auction_id]
-
-                return a
+        updates = {
+            "status": status,
+            "winner": winner,
+            "closed_at": time.time()
+        }
+        
+        upd_res = supabase.table("auctions").update(updates).eq("id", auction_id).execute()
+        if upd_res.data:
+            return upd_res.data[0]
         return None
 
     def get_auction(self, auction_id: str) -> Optional[dict]:
-        """Get auction by ID, with live time_remaining."""
-        auctions = self._read()
-        for a in auctions:
-            if a["id"] == auction_id:
-                auction_obj = Auction.from_dict(a)
-                a["time_remaining"] = round(auction_obj.time_remaining, 1)
-
-                # Auto-expire if time is up and still open
-                if auction_obj.is_expired and a["status"] == "open":
-                    self._close_auction(auction_id)
-                    return self.get_auction(auction_id)
-
-                return a
+        res = supabase.table("auctions").select("*").eq("id", auction_id).execute()
+        if res.data:
+            auc = res.data[0]
+            # In memory enrichment for frontend real-time remaining
+            a_obj = Auction.from_dict(auc)
+            auc["time_remaining"] = a_obj.time_remaining() if auc["status"] == "open" else 0
+            return auc
         return None
 
     def get_winner(self, auction_id: str) -> Optional[dict]:
-        """Get the winner of an auction. Forces close if expired."""
-        auction = self.get_auction(auction_id)
-        if auction is None:
+        res = supabase.table("auctions").select("*").eq("id", auction_id).execute()
+        if not res.data:
             return None
-
-        if auction["status"] == "open":
-            auction_obj = Auction.from_dict(auction)
-            if auction_obj.is_expired:
-                self._close_auction(auction_id)
-                auction = self.get_auction(auction_id)
-
-        return {
-            "auction_id": auction["id"],
-            "task": auction["task"],
-            "status": auction["status"],
-            "total_bids": len(auction.get("bids", [])),
-            "winner": auction.get("winner"),
-        }
+        
+        data = res.data[0]
+        if data["status"] == "open":
+            auction = Auction.from_dict(data)
+            if auction.is_expired():
+                data = self._close_auction(auction_id)
+        
+        return data.get("winner")
 
     def list_auctions(self, status: Optional[str] = None) -> List[dict]:
-        """List all auctions, optionally filtered by status."""
-        auctions = self._read()
-        result = []
-        for a in auctions:
-            auction_obj = Auction.from_dict(a)
-            a["time_remaining"] = round(auction_obj.time_remaining, 1)
+        query = supabase.table("auctions").select("*")
+        if status:
+            query = query.eq("status", status)
+        
+        res = query.execute()
+        auctions = res.data
 
-            # Auto-expire if needed
-            if auction_obj.is_expired and a["status"] == "open":
-                self._close_auction(a["id"])
-                a = self.get_auction(a["id"]) or a
+        # Enrich with time_remaining and auto-close if needed
+        enriched = []
+        for auc in auctions:
+            if auc["status"] == "open":
+                a_obj = Auction.from_dict(auc)
+                if a_obj.is_expired():
+                    closed = self._close_auction(auc["id"])
+                    if closed:
+                        auc = closed
+                else:
+                    auc["time_remaining"] = a_obj.time_remaining()
+            
+            if "time_remaining" not in auc:
+                auc["time_remaining"] = 0
+            enriched.append(auc)
 
-            if status and a["status"] != status:
-                continue
-            result.append(a)
-        return result
+        # Sort by creation time (newest first)
+        enriched.sort(key=lambda x: x.get("created_at", 0), reverse=True)
+        return enriched
