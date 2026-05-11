@@ -1527,3 +1527,39 @@ body {
     color: #10b981;
     font-weight: 600;
 }
+
+/* ─── Footer ─── */
+.site-footer {
+    position: relative;
+    z-index: 1;
+    padding: 24px 32px;
+    border-top: 1px solid var(--border);
+    background: rgba(3, 7, 18, 0.6);
+    backdrop-filter: blur(10px);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.footer-content strong {
+    color: var(--text-secondary);
+}
+
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.footer-link:hover {
+    color: var(--text-primary);
+}

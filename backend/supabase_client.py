@@ -1,11 +1,14 @@
 import os
-from supabase import create_client, Client
+from pathlib import Path
+
+# Load .env from project root
 from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
+from supabase import create_client, Client
 
 import httpx
 from supabase.client import ClientOptions
-
-load_dotenv()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")

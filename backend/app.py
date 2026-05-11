@@ -234,7 +234,9 @@ def submit_bid():
 
 @app.route("/auction/<auction_id>/winner", methods=["GET"])
 def get_auction_winner(auction_id):
-    """Get the winner of an auction."""
+    """
+    Resolved auction summary: status, winner, total_bids (matches Node / Socket consumers).
+    """
     result = auction_engine.get_winner(auction_id)
     if result is None:
         return jsonify({"error": "Auction not found"}), 404

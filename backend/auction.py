@@ -172,6 +172,27 @@ class AuctionEngine:
             return upd_res.data[0]
         return None
 
+    def _refetch_auction(self, auction_id: str) -> Optional[dict]:
+        res = supabase.table("auctions").select("*").eq("id", auction_id).execute()
+        return res.data[0] if res.data else None
+
+    def _winner_payload(self, row: dict) -> dict:
+        """
+        Shape consumed by Node (Socket.IO, /demo/run): status, winner, total_bids.
+        """
+        bids = row.get("bids") or []
+        return {
+            "id": row.get("id"),
+            "status": row.get("status"),
+            "winner": row.get("winner"),
+            "total_bids": len(bids),
+            "task": row.get("task", ""),
+            "required_capability": row.get("required_capability", ""),
+            "budget": row.get("budget", 0),
+            "created_at": row.get("created_at"),
+            "closed_at": row.get("closed_at"),
+        }
+
     def get_auction(self, auction_id: str) -> Optional[dict]:
         res = supabase.table("auctions").select("*").eq("id", auction_id).execute()
         if res.data:
@@ -186,14 +207,17 @@ class AuctionEngine:
         res = supabase.table("auctions").select("*").eq("id", auction_id).execute()
         if not res.data:
             return None
-        
+
         data = res.data[0]
         if data["status"] == "open":
             auction = Auction.from_dict(data)
             if auction.is_expired():
-                data = self._close_auction(auction_id)
-        
-        return data.get("winner")
+                closed = self._close_auction(auction_id)
+                data = closed if closed else self._refetch_auction(auction_id)
+                if data is None:
+                    return None
+
+        return self._winner_payload(data)
 
     def list_auctions(self, status: Optional[str] = None) -> List[dict]:
         query = supabase.table("auctions").select("*")

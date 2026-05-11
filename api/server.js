@@ -4,6 +4,8 @@
  * Integrates @solana/web3.js for on-chain verification.
  */
 
+require("dotenv").config({ path: require("path").resolve(__dirname, "..", ".env") });
+
 const express = require("express");
 const http = require("http");
 const { Server: SocketServer } = require("socket.io");
@@ -25,8 +27,25 @@ const app = express();
 const server = http.createServer(app);
 const io = new SocketServer(server, { cors: { origin: "*" } });
 const PORT = process.env.PORT || 3000;
-const PYTHON_BACKEND = process.env.PYTHON_BACKEND || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/python-api` : "http://localhost:5001");
-const SELF_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
+
+/** Flask app: local `npm run dev` → http://127.0.0.1:5001 | Vercel → /python-api rewrite */
+function resolvePythonBackend() {
+    const explicit = process.env.PYTHON_BACKEND;
+    if (explicit && explicit.trim()) {
+        return explicit.trim().replace(/\/$/, "");
+    }
+    const vercel = process.env.VERCEL_URL;
+    if (vercel) {
+        const host = vercel.replace(/^https?:\/\//, "").split("/")[0];
+        return `https://${host}/python-api`;
+    }
+    return "http://127.0.0.1:5001";
+}
+
+const PYTHON_BACKEND = resolvePythonBackend();
+const SELF_URL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, "").split("/")[0]}`
+    : `http://127.0.0.1:${PORT}`;
 
 // Middleware
 app.use(cors());
@@ -63,12 +82,13 @@ io.on("connection", (socket) => {
 
 app.get("/health", async (req, res) => {
     try {
-        const backendHealth = await axios.get(`${PYTHON_BACKEND}/health`);
+        const backendHealth = await axios.get(`${PYTHON_BACKEND}/health`, { timeout: 8000 });
         const solanaVersion = await connection.getVersion();
         res.json({
             status: "ok",
             service: "agentmesh-api",
             python_backend: backendHealth.data.status,
+            python_backend_url: PYTHON_BACKEND,
             solana_cluster: "devnet",
             solana_version: solanaVersion,
         });
@@ -77,6 +97,7 @@ app.get("/health", async (req, res) => {
             status: "degraded",
             service: "agentmesh-api",
             python_backend: "unreachable",
+            python_backend_url: PYTHON_BACKEND,
             error: err.message,
         });
     }
@@ -154,6 +175,26 @@ app.get("/agents/list", async (req, res) => {
 });
 
 /**
+ * GET /agents/search?capability=xxx
+ * Search agents by capability.
+ * NOTE: Must be defined BEFORE /agents/:id to prevent Express matching 'search' as :id
+ */
+app.get("/agents/search", async (req, res) => {
+    try {
+        const { capability } = req.query;
+        if (!capability) {
+            return res.status(400).json({ error: "capability query parameter required" });
+        }
+        const response = await axios.get(
+            `${PYTHON_BACKEND}/agents/search?capability=${encodeURIComponent(capability)}`
+        );
+        res.json(response.data);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to search agents", details: err.message });
+    }
+});
+
+/**
  * GET /agents/:id
  * Get a specific agent by ID.
  */
@@ -168,25 +209,6 @@ app.get("/agents/:id", async (req, res) => {
             return res.status(404).json({ error: "Agent not found" });
         }
         res.status(500).json({ error: "Failed to fetch agent", details: err.message });
-    }
-});
-
-/**
- * GET /agents/search?capability=xxx
- * Search agents by capability.
- */
-app.get("/agents/search", async (req, res) => {
-    try {
-        const { capability } = req.query;
-        if (!capability) {
-            return res.status(400).json({ error: "capability query parameter required" });
-        }
-        const response = await axios.get(
-            `${PYTHON_BACKEND}/agents/search?capability=${encodeURIComponent(capability)}`
-        );
-        res.json(response.data);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to search agents", details: err.message });
     }
 });
 
@@ -241,9 +263,11 @@ app.post("/auction/bid", async (req, res) => {
             req.body,
             { headers: { "Content-Type": "application/json" } }
         );
-        const bid = response.data;
-        logEvent("bid_submitted", { auction_id: req.body.auction_id, agent_name: bid.agent_name, price: bid.price, estimated_time: bid.estimated_time });
-        res.status(201).json(bid);
+        const auctionRow = response.data;
+        // submit_bid returns the full auction row, not a bid object.
+        // Use req.body values for the event log since they contain the actual bid data.
+        logEvent("bid_submitted", { auction_id: req.body.auction_id, agent_name: req.body.agent_name || req.body.agent_id, price: req.body.price, estimated_time: req.body.estimated_time });
+        res.status(201).json(auctionRow);
     } catch (err) {
         if (err.response) {
             return res.status(err.response.status).json(err.response.data);
