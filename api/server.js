@@ -486,6 +486,49 @@ app.post("/job/complete", async (req, res) => {
 });
 
 /**
+ * POST /job/complete-with-tx
+ * Execute the job and mark it paid with a REAL client-side tx_signature.
+ * Body: { auction_id, tx_signature }
+ */
+app.post("/job/complete-with-tx", async (req, res) => {
+    try {
+        const { auction_id, tx_signature } = req.body;
+        if (!auction_id || !tx_signature) {
+            return res.status(400).json({ error: "auction_id and tx_signature are required" });
+        }
+
+        // 1: Execute job via Python backend
+        const execResponse = await axios.post(
+            `${PYTHON_BACKEND}/job/execute`,
+            { auction_id },
+            { headers: { "Content-Type": "application/json" } }
+        );
+        const job = execResponse.data;
+
+        // 2: Mark it paid directly with the client's signature
+        const paidResponse = await axios.post(
+            `${PYTHON_BACKEND}/job/${job.id}/mark-paid`,
+            { tx_signature: tx_signature },
+            { headers: { "Content-Type": "application/json" } }
+        );
+
+        // the 'paid' response usually includes tx_signature and updates the job DB
+        res.status(201).json({
+            job: paidResponse.data,
+            payment: {
+                tx_signature: tx_signature,
+                amount_lamports: job.price,
+                amount_sol: job.price / LAMPORTS_PER_SOL,
+                explorer: `https://explorer.solana.com/tx/${tx_signature}?cluster=devnet`
+            }
+        });
+    } catch (err) {
+        if (err.response) return res.status(err.response.status).json(err.response.data);
+        res.status(500).json({ error: "Failed to complete job with client tx", details: err.message });
+    }
+});
+
+/**
  * GET /job/:id/status
  * Get job status by ID.
  */
@@ -598,79 +641,78 @@ app.post("/demo/run", async (req, res) => {
         const w1Res = await axios.post(`${PYTHON_BACKEND}/agents/register`, {
             name: `FastWorker_${demoId}`,
             capabilities: ["sentiment_analysis", "nlp"],
-            price_per_request: 60000,
+            price_per_request: 18000000, // 0.018 SOL
         });
         const worker1 = w1Res.data;
-        logEvent("agent_registered", { id: worker1.id, name: worker1.name, capabilities: worker1.capabilities, price: 60000 });
+        logEvent("agent_registered", { id: worker1.id, name: worker1.name, capabilities: worker1.capabilities, price: 18000000 });
 
         const w2Res = await axios.post(`${PYTHON_BACKEND}/agents/register`, {
             name: `CheapWorker_${demoId}`,
             capabilities: ["sentiment_analysis"],
-            price_per_request: 25000,
+            price_per_request: 12000000, // 0.012 SOL
         });
         const worker2 = w2Res.data;
-        logEvent("agent_registered", { id: worker2.id, name: worker2.name, capabilities: worker2.capabilities, price: 25000 });
+        logEvent("agent_registered", { id: worker2.id, name: worker2.name, capabilities: worker2.capabilities, price: 12000000 });
 
         // Step 3: Create auction
         const aucRes = await axios.post(`${PYTHON_BACKEND}/auction/create`, {
             requester_id: requester.id,
             task: `Demo: analyze customer sentiment [${demoId}]`,
             required_capability: "sentiment_analysis",
-            budget: 100000,
-            auction_duration: 5,
+            budget: 20000000, // 0.02 SOL
+            auction_duration: 7,
         });
         const auction = aucRes.data;
-        logEvent("auction_created", { id: auction.id, task: auction.task, capability: "sentiment_analysis", budget: 100000, duration: 5 });
+        logEvent("auction_created", { id: auction.id, task: auction.task, capability: "sentiment_analysis", budget: 20000000, duration: 7 });
 
         // Step 4: Submit bids with delay for realism
         await new Promise(r => setTimeout(r, 500));
         const bid1Res = await axios.post(`${PYTHON_BACKEND}/auction/bid`, {
             auction_id: auction.id,
             agent_id: worker1.id,
-            price: 55000,
+            price: 15000000, // 0.015 SOL
             estimated_time: 3,
         });
-        logEvent("bid_submitted", { auction_id: auction.id, agent_name: worker1.name, price: 55000, estimated_time: 3 });
+        logEvent("bid_submitted", { auction_id: auction.id, agent_name: worker1.name, price: 15000000, estimated_time: 3 });
 
         await new Promise(r => setTimeout(r, 500));
         const bid2Res = await axios.post(`${PYTHON_BACKEND}/auction/bid`, {
             auction_id: auction.id,
             agent_id: worker2.id,
-            price: 30000,
+            price: 12000000, // 0.012 SOL
             estimated_time: 6,
         });
-        logEvent("bid_submitted", { auction_id: auction.id, agent_name: worker2.name, price: 30000, estimated_time: 6 });
+        logEvent("bid_submitted", { auction_id: auction.id, agent_name: worker2.name, price: 12000000, estimated_time: 6 });
 
         // Step 5: Wait for auction to close
-        await new Promise(r => setTimeout(r, 4500));
-        const winRes = await axios.get(`${PYTHON_BACKEND}/auction/${auction.id}/winner`);
-        const winner = winRes.data;
-        if (winner.status === "awarded" && winner.winner) {
-            logEvent("auction_awarded", { auction_id: auction.id, task: auction.task, winner_name: winner.winner.agent_name, winning_price: winner.winner.price, total_bids: winner.total_bids });
+        let winner;
+        for (let i = 0; i < 15; i++) {
+            await new Promise(r => setTimeout(r, 1000));
+            const winRes = await axios.get(`${PYTHON_BACKEND}/auction/${auction.id}/winner`);
+            winner = winRes.data;
+            if (winner.status === "awarded" || winner.status === "expired") {
+                break;
+            }
         }
 
-        // Step 6: Execute job & Process Payment via Solana Devnet
-        const jobRes = await axios.post(`${SELF_URL}/job/complete`, {
-            auction_id: auction.id,
-            requester_secret_key: requester._secret_key
-        });
-        const payout = jobRes.data;
-        const job = payout.job;
-        const payment = payout.payment;
+        if (winner && winner.status === "awarded" && winner.winner) {
+            logEvent("auction_awarded", { auction_id: auction.id, task: auction.task, winner_name: winner.winner.agent_name, winning_price: winner.winner.price, total_bids: winner.total_bids });
+        } else {
+            throw new Error(`Auction failed to award a winner. Final status: ${winner?.status}`);
+        }
 
-        logEvent("job_completed", { job_id: job.id, task: job.task, worker: job.worker_name, price: job.price, result_type: job.result?.type, payment_tx: payment.tx_signature });
-        logEvent("demo_completed", { demo_id: demoId, winner: winner.winner?.agent_name, price: winner.winner?.price, payment_tx: payment.tx_signature, job_result: job.result });
-
+        // Do NOT execute the job yet! 
+        // Pass control back to the frontend so the USER can pay for the winning demo agent using Phantom!
         res.json({
             demo_id: demoId,
             requester: { id: requester.id, name: requester.name },
             workers: [{ id: worker1.id, name: worker1.name }, { id: worker2.id, name: worker2.name }],
             auction: { id: auction.id, task: auction.task },
-            winner: winner.winner,
-            job: { id: job.id, status: job.status, result: job.result, payment_tx: payment.tx_signature },
+            winner: winner.winner
         });
     } catch (err) {
-        logEvent("demo_error", { error: err.message });
+        const errorMsg = err.response?.data?.error || err.message;
+        logEvent("demo_error", { error: errorMsg });
         if (err.response) {
             return res.status(err.response.status).json(err.response.data);
         }

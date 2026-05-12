@@ -317,8 +317,16 @@ function initDemo() {
             const res = await fetch(`${API}/demo/run`, { method: "POST" });
             if (!res.ok) throw new Error((await res.json()).error || "Demo failed");
             const result = await res.json();
-            toast(`🎉 Demo complete! Winner: ${result.winner?.agent_name || 'N/A'}`, "success");
-            showPayoutModal(result);
+
+            toast("Auction complete. Preparing payment...", "info");
+
+            // Execute the job from the frontend using the manual flow to trigger Phantom Wallet
+            const executionResult = await executeFromAuction(result.auction.id);
+
+            if (executionResult) {
+                toast(`🎉 Demo complete! Winner: ${executionResult.winner?.agent_name || 'N/A'}`, "success");
+                showPayoutModal(executionResult);
+            }
         } catch (err) {
             toast(`Demo error: ${err.message}`, "error");
         } finally {
@@ -678,47 +686,99 @@ async function executeFromAuction(auctionId) {
     }
 
     try {
-        const auction = auctions.find(a => a.id === auctionId);
+        let auction = auctions.find(a => a.id === auctionId);
+        // If auction missing or doesn't have a winner yet, force a refresh! (Race condition fix)
+        if (!auction || !auction.winner) {
+            await loadAll();
+            auction = auctions.find(a => a.id === auctionId);
+        }
         if (!auction) throw new Error("Auction not found");
+        if (!auction.winner) throw new Error("Auction has not awarded a winner yet.");
 
-        // Web3 Phantom Signature Mock
-        if (connectedWallet && window.solana) {
-            toast("Please sign the transaction in Phantom to release funds...", "info");
-            try {
-                const message = `AgentMesh\n\nAuthorize payment of ${fmt(auction.winner?.price || 0)} lamports for job: ${auction.task}`;
-                const encodedMessage = new TextEncoder().encode(message);
-                const signedMessage = await window.solana.signMessage(encodedMessage, "utf8");
-                toast("Signature verified. Executing on-chain payment...", "success");
-            } catch (err) {
-                throw new Error("Transaction rejected by user.");
+        let onChainTxSignature = null;
+        let jobExecutionResponse = null;
+
+        // REAL Web3 Phantom Transaction
+        if (connectedWallet && window.solana && window.solanaWeb3) {
+            toast("Preparing real Solana transaction. Please approve in Phantom.", "info");
+
+            // Find worker wallet
+            let workerAgent = agents.find(a => a.id === auction.winner.agent_id);
+            if (!workerAgent) {
+                await loadAgents();
+                workerAgent = agents.find(a => a.id === auction.winner.agent_id);
+            }
+            if (!workerAgent || !workerAgent.wallet_address) {
+                toast("Worker agent has no wallet registered. Falling back to mock execution.", "error");
+            } else {
+                try {
+                    const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("devnet"), "confirmed");
+                    const toPubkey = new solanaWeb3.PublicKey(workerAgent.wallet_address);
+
+                    // The auction price might be very small, let's ensure it's sufficient lamports
+                    const lamports = auction.winner.price || 50000;
+
+                    const transaction = new solanaWeb3.Transaction().add(
+                        solanaWeb3.SystemProgram.transfer({
+                            fromPubkey: window.solana.publicKey,
+                            toPubkey: toPubkey,
+                            lamports: lamports,
+                        })
+                    );
+
+                    transaction.feePayer = window.solana.publicKey;
+                    const { blockhash } = await connection.getLatestBlockhash();
+                    transaction.recentBlockhash = blockhash;
+
+                    const signedTx = await window.solana.signAndSendTransaction(transaction);
+                    onChainTxSignature = signedTx.signature;
+                    toast("Transaction sent! Executing job with signature: " + trunc(onChainTxSignature, 8), "success");
+                } catch (err) {
+                    console.error(err);
+                    throw new Error("Transaction rejected or failed. " + err.message);
+                }
             }
         } else {
-            toast("Executing job (Mock Web2 Mode)... connect wallet for Web3 interaction.", "info");
+            toast("Executing job (Mock Web2 Mode)... connect wallet for REAL Web3 interaction.", "info");
+            await new Promise(r => setTimeout(r, 1500)); // artificial delay
         }
 
-        // Add a small artificial delay to simulate blockchain confirmation
-        await new Promise(r => setTimeout(r, 1500));
-
-        const res = await fetch(`${API}/job/execute`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ auction_id: auctionId }),
-        });
-
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || "Execution failed");
+        // Post execution depending on whether we got a real blockchain signature
+        if (onChainTxSignature) {
+            // Hit the new backend route that takes the signature
+            const res = await fetch(`${API}/job/complete-with-tx`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auction_id: auctionId, tx_signature: onChainTxSignature }),
+            });
+            if (!res.ok) throw new Error((await res.json()).error || "Execution failed");
+            jobExecutionResponse = await res.json();
+        } else {
+            // Original mocked HTTP route
+            const res = await fetch(`${API}/job/execute`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auction_id: auctionId }),
+            });
+            if (!res.ok) throw new Error((await res.json()).error || "Execution failed");
+            jobExecutionResponse = await res.json();
         }
 
-        const job = await res.json();
         toast(`Job completed! Winner Agent received payment.`, "success");
         await loadAll();
+
+        return {
+            auction: auction,
+            winner: auction.winner,
+            job: jobExecutionResponse.job || jobExecutionResponse
+        };
     } catch (err) {
         toast(err.message, "error");
         if (btn) {
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
+        return null;
     }
 }
 
