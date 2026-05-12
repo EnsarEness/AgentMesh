@@ -3,3 +3,4 @@ data/*.json
 data/*.lock
 __pycache__/
 .env
+.vercel

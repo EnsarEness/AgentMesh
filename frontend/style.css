@@ -44,6 +44,8 @@ body {
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ─── Animated Mesh Background ─── */
@@ -1456,6 +1458,7 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+
 /* AI Result Blocks */
 .job-result {
     background: rgba(10, 15, 25, 0.8);
@@ -1466,6 +1469,7 @@ body {
     font-size: 0.85rem;
     color: #e2e8f0;
 }
+
 .result-header {
     display: flex;
     justify-content: space-between;
@@ -1474,16 +1478,20 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
 .result-badge.gemini {
     color: #a855f7;
     font-weight: 600;
 }
+
 .result-badge.mock {
     color: #94a3b8;
 }
+
 .confidence-badge {
     color: #10b981;
 }
+
 .job-result pre {
     margin: 0;
     overflow-x: auto;
@@ -1503,12 +1511,15 @@ body {
     background: rgba(10, 15, 25, 0.6);
     font-size: 0.85rem;
 }
+
 .auditor-panel.pass {
     border-color: #10b981;
 }
+
 .auditor-panel.fail {
     border-color: #ef4444;
 }
+
 .auditor-header {
     display: flex;
     justify-content: space-between;
@@ -1516,13 +1527,16 @@ body {
     margin-bottom: 6px;
     color: #e2e8f0;
 }
+
 .auditor-header .verdict {
     letter-spacing: 0.5px;
 }
+
 .auditor-reason {
     color: #94a3b8;
     line-height: 1.4;
 }
+
 .result-badge.openai {
     color: #10b981;
     font-weight: 600;
@@ -1536,6 +1550,7 @@ body {
     border-top: 1px solid var(--border);
     background: rgba(3, 7, 18, 0.6);
     backdrop-filter: blur(10px);
+    margin-top: auto;
 }
 
 .footer-content {
