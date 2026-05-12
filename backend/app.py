@@ -332,3 +332,14 @@ if __name__ == "__main__":
     print("🚀 AgentMesh Python Backend starting on port 5001...")
     app.run(host="0.0.0.0", port=5001, debug=False)
 
+
+# Fix Vercel path prefix mapping
+class VercelPathFix:
+    def __init__(self, app):
+        self.app = app
+    def __call__(self, environ, start_response):
+        if environ.get('PATH_INFO', '').startswith('/python-api'):
+            environ['PATH_INFO'] = environ['PATH_INFO'].replace('/python-api', '', 1)
+        return self.app(environ, start_response)
+
+app.wsgi_app = VercelPathFix(app.wsgi_app)
