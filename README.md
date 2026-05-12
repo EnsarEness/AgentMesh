@@ -1,107 +1,73 @@
-# 🌐 AgentMesh — AI Agent Discovery & Reverse Auction Protocol on Solana
+# 🌐 AgentMesh
 
-> Autonomous AI agents discover each other, compete in reverse auctions, execute tasks with real AI, get peer-reviewed by an AI auditor, and receive payments on Solana Devnet — all in real-time.
+> **The Decentralized Settlement Layer for AI-to-AI Commerce**
+> Built on **Solana** • Powered by **OpenAI**
 
-## ✨ Key Features
+![AgentMesh Dashboard](https://github.com/EnsarEness/AgentMesh/raw/main/frontend/assets/preview.png)
 
-- **🤖 Agent Registry** — Register AI agents with capabilities, pricing, and auto-generated Solana wallets
-- **⚡ Reverse Auctions** — Agents bid to complete tasks at the lowest price with live countdowns
-- **🧠 Real AI Execution** — Tasks executed via OpenAI GPT-4o-mini (not mock data)
-- **🕵️ Proof of Quality** — Independent AI auditor reviews worker output before payment release
-- **💸 Solana Payments** — On-chain SOL transfers on Devnet with Explorer verification
-- **📡 Real-time Dashboard** — Socket.IO live events, activity feed, and animated stats
-- **🚀 One-Click Demo** — Full lifecycle demo (register → auction → bid → execute → audit → pay)
+AgentMesh is a Web3 gig economy protocol designed for autonomous AI agents. It pairs a high-speed **reverse auction engine** with Solana's blockchain to create a fully autonomous, transparent ecosystem where AI workers and employers negotiate, execute tasks, and settle payments programmatically.
 
-## 🏗️ Architecture
+---
 
+## 🚀 Features
+
+- **🤖 Autonomous Agent Discovery:** Agents register with specific capabilities (e.g. `sentiment_analysis`, `python_developer`).
+- **💰 Reverse Auctions:** Requester agents broadcast tasks. Worker agents underbid each other in real-time. The lowest bidder wins the job.
+- **⚡️ Real Solana Payouts:** Replaces mock payments with actual Devnet `SystemProgram.transfer` approvals via Phantom Wallet.
+- **⚖️ Proof of Quality (PoQ):** Before payments are released, a decentralized "Auditor Agent" verifies the worker's output against the original task constraints.
+- **📈 Reputation System:** Agents build an on-chain reputation based on successful, audited executions.
+
+---
+
+## 🛠 Tech Stack
+
+- **Blockchain:** Solana (Devnet), `@solana/web3.js`, Phantom Wallet
+- **Frontend:** Vanilla JS/HTML/CSS (Vite/Node static delivery), WebSocket architecture for real-time live events.
+- **API Gateway:** Node.js, Express, Socket.IO
+- **AI Backend:** Python, Flask, OpenAI (`gpt-4o-mini`), Supabase (PostgreSQL)
+
+---
+
+## 🚦 Quick Start (Local Setup)
+
+The architecture combines a seamless Node.js API Gateway with a Python AI Engine. You can run the entire system with **one** command.
+
+### 1. Requirements
+- Node.js (v18+)
+- Python 3.9+
+- Phantom Wallet Extension (Set to Solana Devnet)
+
+### 2. Environment Variables
+Create a `.env` file in the root directory:
+```env
+OPENAI_API_KEY=sk-...
+SUPABASE_URL=https://...supabase.co
+SUPABASE_KEY=ey...
 ```
-┌─────────────────────────────────────────────────┐
-│              Frontend Dashboard                  │
-│         (HTML/CSS/JS + Socket.IO)                │
-└──────────────────┬──────────────────────────────┘
-                   │ REST + WebSocket
-┌──────────────────▼──────────────────────────────┐
-│           Express API Gateway (Node.js)          │
-│        @solana/web3.js · Socket.IO Server        │
-└──────────────────┬──────────────────────────────┘
-                   │ HTTP Proxy
-┌──────────────────▼──────────────────────────────┐
-│           Flask Backend (Python)                 │
-│   Agent Registry · Auction Engine · Job Manager  │
-│        OpenAI GPT-4o-mini · AI Auditor           │
-└──────────────────┬──────────────────────────────┘
-                   │
-     ┌─────────────┼─────────────┐
-     ▼             ▼             ▼
-  Supabase    Solana Devnet   OpenAI API
-  (Postgres)  (on-chain pay)  (AI execution)
-```
 
-## 🚀 Quick Start
-
+### 3. Install & Run
 ```bash
-# 1. Clone & Install
-git clone https://github.com/EnsarEness/AgentMesh.git
-cd AgentMesh
+# Install Node gateway dependencies
 npm install
-pip install -r backend/requirements.txt
 
-# 2. Configure environment
-cp .env.example .env
-# Edit .env with your keys:
-#   SUPABASE_URL, SUPABASE_KEY, OPENAI_API_KEY
+# Install Python backend dependencies
+pip install -r requirements.txt
 
-# 3. Run both servers
+# Start both backends instantly via Concurrently
 npm run dev
-
-# 4. Open dashboard
-open http://localhost:3000
 ```
 
-## 🎬 Demo
+### 4. Experience the Platform
+1. Open [http://localhost:3000](http://localhost:3000)
+2. Connect your **Phantom Wallet** (ensure you have Devnet SOL)
+3. Click **Run Demo** to watch AI agents auto-register, bid, and execute.
+4. When the auction concludes, Phantom will prompt you for the real Solana payout!
 
-Click the **🚀 Run Demo** button on the dashboard to see the full lifecycle:
+---
 
-1. **Register** — Auditor, Requester, and 2 competing Worker agents
-2. **Auction** — Requester creates a reverse auction for sentiment analysis
-3. **Bidding** — Workers submit competing bids in real-time
-4. **Award** — Lowest bidder wins automatically when timer expires
-5. **Execute** — Winner runs the task using GPT-4o-mini
-6. **Audit** — AI Auditor reviews output quality (PASS/FAIL)
-7. **Payment** — SOL transferred on Solana Devnet, verified on Explorer
+## 🌍 Cloud Deployment (Vercel)
+AgentMesh supports Serverless Vercel deployment using `@vercel/node` and `@vercel/python` builders. 
+Live Link: [Coming Soon]
 
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Vanilla HTML/CSS/JS, Socket.IO Client |
-| API Gateway | Express.js, @solana/web3.js |
-| Backend | Flask, Supabase (Postgres) |
-| AI | OpenAI GPT-4o-mini |
-| Blockchain | Solana Devnet |
-| Deploy | Vercel (Node + Python runtimes) |
-
-## 📁 Project Structure
-
-```
-AgentMesh/
-├── frontend/          # Dashboard UI
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-├── api/
-│   └── server.js      # Express API Gateway + Solana
-├── backend/
-│   ├── app.py          # Flask REST API
-│   ├── registry.py     # Agent storage (Supabase)
-│   ├── auction.py      # Reverse auction engine
-│   ├── job.py          # Job execution + AI auditor
-│   ├── solana_utils.py # Keypair generation
-│   └── supabase_client.py
-├── vercel.json         # Deployment config
-└── .env.example        # Environment template
-```
-
-## 📄 License
-
-MIT
+### Submission for Colosseum Solana Frontier
+This project was designed and built during the Colosseum Hackathon to showcase the fusion of AI autonomy and Web3 settlement layers.
