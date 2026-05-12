@@ -42,7 +42,16 @@ function resolvePythonBackend() {
     return "http://127.0.0.1:5001";
 }
 
-const PYTHON_BACKEND = resolvePythonBackend();
+function getPythonBackend(req) {
+    if (process.env.PYTHON_BACKEND) return process.env.PYTHON_BACKEND;
+    if (process.env.VERCEL_URL) return 'https://' + process.env.VERCEL_URL + '/python-api';
+    if (req && req.headers && req.headers.host) {
+         return (req.headers.host.includes('localhost') ? 'http://' : 'https://') + req.headers.host + '/python-api';
+    }
+    return 'http://127.0.0.1:5001';
+}
+const PYTHON_BACKEND = "http://127.0.0.1:5001"; // fallback var for global scope
+
 const SELF_URL = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, "").split("/")[0]}`
     : `http://127.0.0.1:${PORT}`;
@@ -82,7 +91,7 @@ io.on("connection", (socket) => {
 
 app.get("/api/health", async (req, res) => {
     try {
-        const backendHealth = await axios.get(`${PYTHON_BACKEND}/health`, { timeout: 8000 });
+        const backendHealth = await axios.get(`${getPythonBackend(req)}/health`, { timeout: 8000 });
         const solanaVersion = await connection.getVersion();
         res.json({
             status: "ok",
@@ -109,7 +118,7 @@ app.get("/api/health", async (req, res) => {
  */
 app.get("/api/stats", async (req, res) => {
     try {
-        const response = await axios.get(`${PYTHON_BACKEND}/stats`);
+        const response = await axios.get(`${getPythonBackend(req)}/stats`);
         res.json(response.data);
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch stats", details: err.message });
@@ -136,7 +145,7 @@ app.post("/api/agents/register", async (req, res) => {
 
         // Forward to Python backend
         const response = await axios.post(
-            `${PYTHON_BACKEND}/agents/register`,
+            `${getPythonBackend(req)}/agents/register`,
             { name, capabilities, price_per_request, wallet_address },
             { headers: { "Content-Type": "application/json" } }
         );
@@ -167,7 +176,7 @@ app.post("/api/agents/register", async (req, res) => {
  */
 app.get("/api/agents/list", async (req, res) => {
     try {
-        const response = await axios.get(`${PYTHON_BACKEND}/agents/list`);
+        const response = await axios.get(`${getPythonBackend(req)}/agents/list`);
         res.json(response.data);
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch agents", details: err.message });
@@ -186,7 +195,7 @@ app.get("/api/agents/search", async (req, res) => {
             return res.status(400).json({ error: "capability query parameter required" });
         }
         const response = await axios.get(
-            `${PYTHON_BACKEND}/agents/search?capability=${encodeURIComponent(capability)}`
+            `${getPythonBackend(req)}/agents/search?capability=${encodeURIComponent(capability)}`
         );
         res.json(response.data);
     } catch (err) {
@@ -201,7 +210,7 @@ app.get("/api/agents/search", async (req, res) => {
 app.get("/api/agents/:id", async (req, res) => {
     try {
         const response = await axios.get(
-            `${PYTHON_BACKEND}/agents/${req.params.id}`
+            `${getPythonBackend(req)}/agents/${req.params.id}`
         );
         res.json(response.data);
     } catch (err) {
@@ -222,7 +231,7 @@ app.get("/api/agents/:id", async (req, res) => {
 app.post("/api/auction/create", async (req, res) => {
     try {
         const response = await axios.post(
-            `${PYTHON_BACKEND}/auction/create`,
+            `${getPythonBackend(req)}/auction/create`,
             req.body,
             { headers: { "Content-Type": "application/json" } }
         );
@@ -232,7 +241,7 @@ app.post("/api/auction/create", async (req, res) => {
         // Schedule auto-close event
         setTimeout(async () => {
             try {
-                const winRes = await axios.get(`${PYTHON_BACKEND}/auction/${auc.id}/winner`);
+                const winRes = await axios.get(`${getPythonBackend(req)}/auction/${auc.id}/winner`);
                 const w = winRes.data;
                 if (w.status === "awarded" && w.winner) {
                     logEvent("auction_awarded", { auction_id: auc.id, task: auc.task, winner_name: w.winner.agent_name, winning_price: w.winner.price, total_bids: w.total_bids });
@@ -259,7 +268,7 @@ app.post("/api/auction/create", async (req, res) => {
 app.post("/api/auction/bid", async (req, res) => {
     try {
         const response = await axios.post(
-            `${PYTHON_BACKEND}/auction/bid`,
+            `${getPythonBackend(req)}/auction/bid`,
             req.body,
             { headers: { "Content-Type": "application/json" } }
         );
@@ -283,8 +292,8 @@ app.post("/api/auction/bid", async (req, res) => {
 app.get("/api/auction/list", async (req, res) => {
     try {
         const url = req.query.status
-            ? `${PYTHON_BACKEND}/auction/list?status=${req.query.status}`
-            : `${PYTHON_BACKEND}/auction/list`;
+            ? `${getPythonBackend(req)}/auction/list?status=${req.query.status}`
+            : `${getPythonBackend(req)}/auction/list`;
         const response = await axios.get(url);
         res.json(response.data);
     } catch (err) {
@@ -299,7 +308,7 @@ app.get("/api/auction/list", async (req, res) => {
 app.get("/api/auction/:id/winner", async (req, res) => {
     try {
         const response = await axios.get(
-            `${PYTHON_BACKEND}/auction/${req.params.id}/winner`
+            `${getPythonBackend(req)}/auction/${req.params.id}/winner`
         );
         res.json(response.data);
     } catch (err) {
@@ -317,7 +326,7 @@ app.get("/api/auction/:id/winner", async (req, res) => {
 app.get("/api/auction/:id", async (req, res) => {
     try {
         const response = await axios.get(
-            `${PYTHON_BACKEND}/auction/${req.params.id}`
+            `${getPythonBackend(req)}/auction/${req.params.id}`
         );
         res.json(response.data);
     } catch (err) {
@@ -338,7 +347,7 @@ app.get("/api/auction/:id", async (req, res) => {
 app.post("/api/job/execute", async (req, res) => {
     try {
         const response = await axios.post(
-            `${PYTHON_BACKEND}/job/execute`,
+            `${getPythonBackend(req)}/job/execute`,
             req.body,
             { headers: { "Content-Type": "application/json" } }
         );
@@ -371,7 +380,7 @@ app.post("/api/job/complete", async (req, res) => {
 
         // Step 1: Execute the job via Python backend
         const execResponse = await axios.post(
-            `${PYTHON_BACKEND}/job/execute`,
+            `${getPythonBackend(req)}/job/execute`,
             { auction_id },
             { headers: { "Content-Type": "application/json" } }
         );
@@ -382,7 +391,7 @@ app.post("/api/job/complete", async (req, res) => {
         const payerKeypair = Keypair.fromSecretKey(new Uint8Array(secretBytes));
 
         const recipientPubkey = new PublicKey(
-            (await axios.get(`${PYTHON_BACKEND}/agents/${job.worker_id}`)).data.wallet_address
+            (await axios.get(`${getPythonBackend(req)}/agents/${job.worker_id}`)).data.wallet_address
         );
 
         // Airdrop 1 SOL to payer for devnet testing
@@ -418,7 +427,7 @@ app.post("/api/job/complete", async (req, res) => {
             const mockTx = "5" + Array.from({ length: 87 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 
             const paidResponse = await axios.post(
-                `${PYTHON_BACKEND}/job/${job.id}/mark-paid`,
+                `${getPythonBackend(req)}/job/${job.id}/mark-paid`,
                 { tx_signature: mockTx },
                 { headers: { "Content-Type": "application/json" } }
             );
@@ -460,7 +469,7 @@ app.post("/api/job/complete", async (req, res) => {
 
         // Step 3: Mark job as paid in backend
         const paidResponse = await axios.post(
-            `${PYTHON_BACKEND}/job/${job.id}/mark-paid`,
+            `${getPythonBackend(req)}/job/${job.id}/mark-paid`,
             { tx_signature: txSignature },
             { headers: { "Content-Type": "application/json" } }
         );
@@ -499,7 +508,7 @@ app.post("/api/job/complete-with-tx", async (req, res) => {
 
         // 1: Execute job via Python backend
         const execResponse = await axios.post(
-            `${PYTHON_BACKEND}/job/execute`,
+            `${getPythonBackend(req)}/job/execute`,
             { auction_id },
             { headers: { "Content-Type": "application/json" } }
         );
@@ -507,7 +516,7 @@ app.post("/api/job/complete-with-tx", async (req, res) => {
 
         // 2: Mark it paid directly with the client's signature
         const paidResponse = await axios.post(
-            `${PYTHON_BACKEND}/job/${job.id}/mark-paid`,
+            `${getPythonBackend(req)}/job/${job.id}/mark-paid`,
             { tx_signature: tx_signature },
             { headers: { "Content-Type": "application/json" } }
         );
@@ -535,7 +544,7 @@ app.post("/api/job/complete-with-tx", async (req, res) => {
 app.get("/api/job/:id/status", async (req, res) => {
     try {
         const response = await axios.get(
-            `${PYTHON_BACKEND}/job/${req.params.id}/status`
+            `${getPythonBackend(req)}/job/${req.params.id}/status`
         );
         res.json(response.data);
     } catch (err) {
@@ -553,8 +562,8 @@ app.get("/api/job/:id/status", async (req, res) => {
 app.get("/api/job/list", async (req, res) => {
     try {
         const url = req.query.status
-            ? `${PYTHON_BACKEND}/job/list?status=${req.query.status}`
-            : `${PYTHON_BACKEND}/job/list`;
+            ? `${getPythonBackend(req)}/job/list?status=${req.query.status}`
+            : `${getPythonBackend(req)}/job/list`;
         const response = await axios.get(url);
         res.json(response.data);
     } catch (err) {
@@ -600,7 +609,7 @@ app.get("/api/activity", (req, res) => {
  */
 app.get("/api/leaderboard", async (req, res) => {
     try {
-        const response = await axios.get(`${PYTHON_BACKEND}/agents/list`);
+        const response = await axios.get(`${getPythonBackend(req)}/agents/list`);
         const sorted = response.data
             .filter(a => a.total_jobs > 0)
             .sort((a, b) => b.reputation_score - a.reputation_score || b.completed_jobs - a.completed_jobs);
@@ -620,7 +629,7 @@ app.post("/api/demo/run", async (req, res) => {
         logEvent("demo_started", { demo_id: demoId });
 
         // Step 1: Register Auditor
-        const auditRes = await axios.post(`${PYTHON_BACKEND}/agents/register`, {
+        const auditRes = await axios.post(`${getPythonBackend(req)}/agents/register`, {
             name: `ReviewerBot_${demoId}`,
             capabilities: ["quality_control"],
             price_per_request: 50,
@@ -629,7 +638,7 @@ app.post("/api/demo/run", async (req, res) => {
         logEvent("agent_registered", { id: auditor.id, name: auditor.name, capabilities: auditor.capabilities, price: 50 });
 
         // Step 2: Register requester
-        const req1 = await axios.post(`${PYTHON_BACKEND}/agents/register`, {
+        const req1 = await axios.post(`${getPythonBackend(req)}/agents/register`, {
             name: `DemoRequester_${demoId}`,
             capabilities: ["task_delegation"],
             price_per_request: 0,
@@ -638,7 +647,7 @@ app.post("/api/demo/run", async (req, res) => {
         logEvent("agent_registered", { id: requester.id, name: requester.name, capabilities: requester.capabilities, price: 0 });
 
         // Step 2: Register 2 competing workers
-        const w1Res = await axios.post(`${PYTHON_BACKEND}/agents/register`, {
+        const w1Res = await axios.post(`${getPythonBackend(req)}/agents/register`, {
             name: `FastWorker_${demoId}`,
             capabilities: ["sentiment_analysis", "nlp"],
             price_per_request: 18000000, // 0.018 SOL
@@ -646,7 +655,7 @@ app.post("/api/demo/run", async (req, res) => {
         const worker1 = w1Res.data;
         logEvent("agent_registered", { id: worker1.id, name: worker1.name, capabilities: worker1.capabilities, price: 18000000 });
 
-        const w2Res = await axios.post(`${PYTHON_BACKEND}/agents/register`, {
+        const w2Res = await axios.post(`${getPythonBackend(req)}/agents/register`, {
             name: `CheapWorker_${demoId}`,
             capabilities: ["sentiment_analysis"],
             price_per_request: 12000000, // 0.012 SOL
@@ -655,7 +664,7 @@ app.post("/api/demo/run", async (req, res) => {
         logEvent("agent_registered", { id: worker2.id, name: worker2.name, capabilities: worker2.capabilities, price: 12000000 });
 
         // Step 3: Create auction
-        const aucRes = await axios.post(`${PYTHON_BACKEND}/auction/create`, {
+        const aucRes = await axios.post(`${getPythonBackend(req)}/auction/create`, {
             requester_id: requester.id,
             task: `Demo: analyze customer sentiment [${demoId}]`,
             required_capability: "sentiment_analysis",
@@ -667,7 +676,7 @@ app.post("/api/demo/run", async (req, res) => {
 
         // Step 4: Submit bids with delay for realism
         await new Promise(r => setTimeout(r, 500));
-        const bid1Res = await axios.post(`${PYTHON_BACKEND}/auction/bid`, {
+        const bid1Res = await axios.post(`${getPythonBackend(req)}/auction/bid`, {
             auction_id: auction.id,
             agent_id: worker1.id,
             price: 15000000, // 0.015 SOL
@@ -676,7 +685,7 @@ app.post("/api/demo/run", async (req, res) => {
         logEvent("bid_submitted", { auction_id: auction.id, agent_name: worker1.name, price: 15000000, estimated_time: 3 });
 
         await new Promise(r => setTimeout(r, 500));
-        const bid2Res = await axios.post(`${PYTHON_BACKEND}/auction/bid`, {
+        const bid2Res = await axios.post(`${getPythonBackend(req)}/auction/bid`, {
             auction_id: auction.id,
             agent_id: worker2.id,
             price: 12000000, // 0.012 SOL
@@ -688,7 +697,7 @@ app.post("/api/demo/run", async (req, res) => {
         let winner;
         for (let i = 0; i < 15; i++) {
             await new Promise(r => setTimeout(r, 1000));
-            const winRes = await axios.get(`${PYTHON_BACKEND}/auction/${auction.id}/winner`);
+            const winRes = await axios.get(`${getPythonBackend(req)}/auction/${auction.id}/winner`);
             winner = winRes.data;
             if (winner.status === "awarded" || winner.status === "expired") {
                 break;
@@ -728,7 +737,7 @@ if (process.env.VERCEL) {
     server.listen(PORT, () => {
         console.log(`\n🌐 AgentMesh API Gateway running on http://localhost:${PORT}`);
         console.log(`🔌 Socket.IO real-time events enabled`);
-        console.log(`📡 Python backend: ${PYTHON_BACKEND}`);
+        console.log(`📡 Python backend: ${getPythonBackend(req)}`);
         console.log(`⛓️  Solana cluster: devnet\n`);
     });
 }
