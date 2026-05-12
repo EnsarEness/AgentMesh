@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
 
 // ─── Health Check ────────────────────────────────────────────────────────────
 
-app.get("/health", async (req, res) => {
+app.get("/api/health", async (req, res) => {
     try {
         const backendHealth = await axios.get(`${PYTHON_BACKEND}/health`, { timeout: 8000 });
         const solanaVersion = await connection.getVersion();
@@ -107,7 +107,7 @@ app.get("/health", async (req, res) => {
  * GET /stats
  * Protocol-wide statistics.
  */
-app.get("/stats", async (req, res) => {
+app.get("/api/stats", async (req, res) => {
     try {
         const response = await axios.get(`${PYTHON_BACKEND}/stats`);
         res.json(response.data);
@@ -123,7 +123,7 @@ app.get("/stats", async (req, res) => {
  * Register a new agent. Proxies to Python backend.
  * Body: { name, capabilities, price_per_request }
  */
-app.post("/agents/register", async (req, res) => {
+app.post("/api/agents/register", async (req, res) => {
     try {
         const { name, capabilities, price_per_request, wallet_address } = req.body;
 
@@ -165,7 +165,7 @@ app.post("/agents/register", async (req, res) => {
  * GET /agents/list
  * List all registered agents.
  */
-app.get("/agents/list", async (req, res) => {
+app.get("/api/agents/list", async (req, res) => {
     try {
         const response = await axios.get(`${PYTHON_BACKEND}/agents/list`);
         res.json(response.data);
@@ -179,7 +179,7 @@ app.get("/agents/list", async (req, res) => {
  * Search agents by capability.
  * NOTE: Must be defined BEFORE /agents/:id to prevent Express matching 'search' as :id
  */
-app.get("/agents/search", async (req, res) => {
+app.get("/api/agents/search", async (req, res) => {
     try {
         const { capability } = req.query;
         if (!capability) {
@@ -198,7 +198,7 @@ app.get("/agents/search", async (req, res) => {
  * GET /agents/:id
  * Get a specific agent by ID.
  */
-app.get("/agents/:id", async (req, res) => {
+app.get("/api/agents/:id", async (req, res) => {
     try {
         const response = await axios.get(
             `${PYTHON_BACKEND}/agents/${req.params.id}`
@@ -219,7 +219,7 @@ app.get("/agents/:id", async (req, res) => {
  * Create a new reverse auction.
  * Body: { requester_id, task, required_capability, budget, deadline?, auction_duration? }
  */
-app.post("/auction/create", async (req, res) => {
+app.post("/api/auction/create", async (req, res) => {
     try {
         const response = await axios.post(
             `${PYTHON_BACKEND}/auction/create`,
@@ -256,7 +256,7 @@ app.post("/auction/create", async (req, res) => {
  * Submit a bid to an auction.
  * Body: { auction_id, agent_id, price, estimated_time }
  */
-app.post("/auction/bid", async (req, res) => {
+app.post("/api/auction/bid", async (req, res) => {
     try {
         const response = await axios.post(
             `${PYTHON_BACKEND}/auction/bid`,
@@ -280,7 +280,7 @@ app.post("/auction/bid", async (req, res) => {
  * GET /auction/list
  * List all auctions. Optional query: ?status=open|closed|awarded|expired
  */
-app.get("/auction/list", async (req, res) => {
+app.get("/api/auction/list", async (req, res) => {
     try {
         const url = req.query.status
             ? `${PYTHON_BACKEND}/auction/list?status=${req.query.status}`
@@ -296,7 +296,7 @@ app.get("/auction/list", async (req, res) => {
  * GET /auction/:id/winner
  * Get the winner of an auction.
  */
-app.get("/auction/:id/winner", async (req, res) => {
+app.get("/api/auction/:id/winner", async (req, res) => {
     try {
         const response = await axios.get(
             `${PYTHON_BACKEND}/auction/${req.params.id}/winner`
@@ -314,7 +314,7 @@ app.get("/auction/:id/winner", async (req, res) => {
  * GET /auction/:id
  * Get auction details by ID.
  */
-app.get("/auction/:id", async (req, res) => {
+app.get("/api/auction/:id", async (req, res) => {
     try {
         const response = await axios.get(
             `${PYTHON_BACKEND}/auction/${req.params.id}`
@@ -335,7 +335,7 @@ app.get("/auction/:id", async (req, res) => {
  * Execute a job from an awarded auction (mock, no SOL transfer).
  * Body: { auction_id }
  */
-app.post("/job/execute", async (req, res) => {
+app.post("/api/job/execute", async (req, res) => {
     try {
         const response = await axios.post(
             `${PYTHON_BACKEND}/job/execute`,
@@ -359,7 +359,7 @@ app.post("/job/execute", async (req, res) => {
  * Body: { auction_id, requester_secret_key }
  * requester_secret_key is the base64-encoded keypair bytes from registration.
  */
-app.post("/job/complete", async (req, res) => {
+app.post("/api/job/complete", async (req, res) => {
     try {
         const { auction_id, requester_secret_key } = req.body;
 
@@ -490,7 +490,7 @@ app.post("/job/complete", async (req, res) => {
  * Execute the job and mark it paid with a REAL client-side tx_signature.
  * Body: { auction_id, tx_signature }
  */
-app.post("/job/complete-with-tx", async (req, res) => {
+app.post("/api/job/complete-with-tx", async (req, res) => {
     try {
         const { auction_id, tx_signature } = req.body;
         if (!auction_id || !tx_signature) {
@@ -532,7 +532,7 @@ app.post("/job/complete-with-tx", async (req, res) => {
  * GET /job/:id/status
  * Get job status by ID.
  */
-app.get("/job/:id/status", async (req, res) => {
+app.get("/api/job/:id/status", async (req, res) => {
     try {
         const response = await axios.get(
             `${PYTHON_BACKEND}/job/${req.params.id}/status`
@@ -550,7 +550,7 @@ app.get("/job/:id/status", async (req, res) => {
  * GET /job/list
  * List all jobs. Optional query: ?status=pending|completed|paid
  */
-app.get("/job/list", async (req, res) => {
+app.get("/api/job/list", async (req, res) => {
     try {
         const url = req.query.status
             ? `${PYTHON_BACKEND}/job/list?status=${req.query.status}`
@@ -568,7 +568,7 @@ app.get("/job/list", async (req, res) => {
  * GET /solana/balance/:address
  * Check SOL balance of a wallet address on devnet.
  */
-app.get("/solana/balance/:address", async (req, res) => {
+app.get("/api/solana/balance/:address", async (req, res) => {
     try {
         const pubkey = new PublicKey(req.params.address);
         const balance = await connection.getBalance(pubkey);
@@ -589,7 +589,7 @@ app.get("/solana/balance/:address", async (req, res) => {
  * GET /activity
  * Recent protocol events. Optional query: ?limit=N
  */
-app.get("/activity", (req, res) => {
+app.get("/api/activity", (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     res.json(activityLog.slice(0, limit));
 });
@@ -598,7 +598,7 @@ app.get("/activity", (req, res) => {
  * GET /leaderboard
  * Agents sorted by reputation_score descending.
  */
-app.get("/leaderboard", async (req, res) => {
+app.get("/api/leaderboard", async (req, res) => {
     try {
         const response = await axios.get(`${PYTHON_BACKEND}/agents/list`);
         const sorted = response.data
@@ -614,7 +614,7 @@ app.get("/leaderboard", async (req, res) => {
  * POST /demo/run
  * Automated demo: register 2 agents, create auction, submit bids, wait for close, execute job.
  */
-app.post("/demo/run", async (req, res) => {
+app.post("/api/demo/run", async (req, res) => {
     try {
         const demoId = Date.now().toString(36).slice(-4);
         logEvent("demo_started", { demo_id: demoId });

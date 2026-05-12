@@ -3,7 +3,7 @@
  * Socket.IO real-time events, API integration, live countdown, demo automation.
  */
 
-const API = window.location.origin;
+const API = window.location.origin + '/api';
 let agents = [];
 let auctions = [];
 let jobs = [];
@@ -36,7 +36,7 @@ async function loadAll() {
 
 function initSocket() {
     try {
-        socket = io(API, { timeout: 5000, reconnectionAttempts: 3 });
+        socket = io(window.location.origin, { timeout: 5000, reconnectionAttempts: 3 });
 
         socket.on("connect", () => {
             console.log("🔌 Socket connected:", socket.id);
